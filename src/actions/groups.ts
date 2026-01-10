@@ -3,6 +3,17 @@
 import { prisma } from '@/lib/prisma';
 import { getUser } from './auth';
 import { revalidatePath } from 'next/cache';
+import { Bookmark, Group, GroupMember, Profile } from '@prisma/client';
+
+type GroupWithCount = Group & {
+  _count: {
+    members: number;
+  };
+};
+
+type GroupMemberWithGroup = GroupMember & {
+  group: GroupWithCount;
+};
 
 export async function getGroups() {
   const user = await getUser();
@@ -21,7 +32,7 @@ export async function getGroups() {
     },
   });
 
-  return members.map((m: any) => ({
+  return members.map((m: GroupMemberWithGroup) => ({
     ...m.group,
     role: m.role,
     memberCount: m.group._count.members,
@@ -107,7 +118,7 @@ export async function getGroupDetails(groupId: string) {
   if (!group) return null;
 
   // Fetch profiles for members
-  const userIds = group.members.map((m: any) => m.user_id);
+  const userIds = group.members.map((m: GroupMember) => m.user_id);
   const profiles = await prisma.profile.findMany({
     where: { id: { in: userIds } },
   });
@@ -123,10 +134,12 @@ export async function getGroupDetails(groupId: string) {
     },
   });
 
-  const progressMap = new Map(progressData.map((p: any) => [p.user_id, p._sum.character_count || 0]));
+  const progressMap = new Map(
+    progressData.map((p) => [p.user_id, p._sum.character_count || 0])
+  );
 
-  const membersWithProfile = group.members.map((m: any) => {
-    const profile = profiles.find((p: any) => p.id === m.user_id);
+  const membersWithProfile = group.members.map((m: GroupMember & { bookmark: Bookmark | null }) => {
+    const profile = profiles.find((p: Profile) => p.id === m.user_id);
     const progress = progressMap.get(m.user_id) || 0;
     return {
       ...m,

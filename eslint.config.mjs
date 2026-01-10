@@ -11,9 +11,12 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/quotes": "off",
       "react/jsx-quotes": "off",
       // Allow unused vars with underscore prefix
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-      // Relax some strict rules for development
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" },
+      ],
+      // Catch explicit any as an error
+      "@typescript-eslint/no-explicit-any": "error",
       // Allow empty interfaces (useful for extending)
       "@typescript-eslint/no-empty-interface": "off",
     },

@@ -46,7 +46,7 @@ export default function LoginPage() {
 
   const handleSignUp = async () => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { data: _data, error } = await supabase.auth.signUp({
       email,
       password,
     });

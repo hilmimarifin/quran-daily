@@ -69,9 +69,9 @@ export async function getGroupRankings(groupId: string, period: 'weekly' | 'mont
     },
   });
 
-  return logs.map((log: any, index: number) => ({
+  return logs.map((log) => ({
     userId: log.user_id,
-    rank: index + 1,
+    rank: logs.indexOf(log) + 1,
     progress: log._sum.character_count || 0,
   }));
 }

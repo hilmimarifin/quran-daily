@@ -22,7 +22,7 @@ interface BookmarkState {
   deleteBookmark: (id: string) => Promise<void>;
 }
 
-export const useBookmarkStore = create<BookmarkState>((set, get) => ({
+export const useBookmarkStore = create<BookmarkState>((set, _get) => ({
   bookmarks: [],
   loading: false,
   fetchBookmarks: async () => {

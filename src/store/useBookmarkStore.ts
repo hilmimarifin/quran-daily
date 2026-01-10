@@ -15,7 +15,9 @@ interface BookmarkState {
   bookmarks: Bookmark[];
   loading: boolean;
   fetchBookmarks: () => Promise<void>;
-  addBookmark: (bookmark: Omit<Bookmark, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  addBookmark: (
+    bookmark: Omit<Bookmark, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+  ) => Promise<void>;
   updateBookmark: (id: string, updates: Partial<Bookmark>) => Promise<void>;
   deleteBookmark: (id: string) => Promise<void>;
 }
@@ -29,7 +31,7 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
       .from('bookmarks')
       .select('*')
       .order('updated_at', { ascending: false });
-    
+
     if (error) {
       console.error('Error fetching bookmarks:', error);
     } else {
@@ -38,7 +40,9 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
     set({ loading: false });
   },
   addBookmark: async (bookmark) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data, error } = await supabase
@@ -54,10 +58,7 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
     }
   },
   updateBookmark: async (id, updates) => {
-    const { error } = await supabase
-      .from('bookmarks')
-      .update(updates)
-      .eq('id', id);
+    const { error } = await supabase.from('bookmarks').update(updates).eq('id', id);
 
     if (error) {
       console.error('Error updating bookmark:', error);
@@ -68,10 +69,7 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
     }
   },
   deleteBookmark: async (id) => {
-    const { error } = await supabase
-      .from('bookmarks')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('bookmarks').delete().eq('id', id);
 
     if (error) {
       console.error('Error deleting bookmark:', error);

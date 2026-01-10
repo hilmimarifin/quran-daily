@@ -9,19 +9,11 @@ interface PageProps {
 
 export default async function GroupDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [group, bookmarks] = await Promise.all([
-    getGroupDetails(id),
-    getBookmarks(),
-  ]);
+  const [group, bookmarks] = await Promise.all([getGroupDetails(id), getBookmarks()]);
 
   if (!group) {
     notFound();
   }
 
-  return (
-    <GroupDetailClient 
-      group={group} 
-      bookmarks={bookmarks}
-    />
-  );
+  return <GroupDetailClient group={group} bookmarks={bookmarks} />;
 }

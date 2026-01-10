@@ -23,7 +23,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user, loading: false });
       } else {
         // Fallback to client check (e.g. after initial load)
-        const { data: { user: clientUser } } = await supabase.auth.getUser();
+        const {
+          data: { user: clientUser },
+        } = await supabase.auth.getUser();
         set({ user: clientUser ?? null, loading: false });
       }
 

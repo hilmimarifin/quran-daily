@@ -17,9 +17,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
           response = NextResponse.next({
             request: {
               headers: request.headers,
@@ -41,7 +39,7 @@ export async function middleware(request: NextRequest) {
   if (
     !user &&
     (request.nextUrl.pathname.startsWith('/bookmarks') ||
-    request.nextUrl.pathname.startsWith('/groups'))
+      request.nextUrl.pathname.startsWith('/groups'))
   ) {
     return NextResponse.redirect(new URL('/login', request.url));
   }

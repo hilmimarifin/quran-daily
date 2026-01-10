@@ -14,7 +14,11 @@ export async function getBookmarks() {
   });
 }
 
-export async function addBookmark(data: { name: string; surah_number: number; verse_number: number }) {
+export async function addBookmark(data: {
+  name: string;
+  surah_number: number;
+  verse_number: number;
+}) {
   const user = await getUser();
   if (!user) throw new Error('Unauthorized');
 
@@ -42,7 +46,10 @@ export async function deleteBookmark(id: string) {
   revalidatePath('/bookmarks');
 }
 
-export async function updateBookmark(id: string, data: { surah_number: number; verse_number: number }) {
+export async function updateBookmark(
+  id: string,
+  data: { surah_number: number; verse_number: number }
+) {
   const user = await getUser();
   if (!user) throw new Error('Unauthorized');
 

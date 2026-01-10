@@ -107,7 +107,7 @@ export async function getGroupDetails(groupId: string) {
   if (!group) return null;
 
   // Fetch profiles for members
-  const userIds = group.members.map(m => m.user_id);
+  const userIds = group.members.map((m) => m.user_id);
   const profiles = await prisma.profile.findMany({
     where: { id: { in: userIds } },
   });
@@ -123,10 +123,10 @@ export async function getGroupDetails(groupId: string) {
     },
   });
 
-  const progressMap = new Map(progressData.map(p => [p.user_id, p._sum.character_count || 0]));
+  const progressMap = new Map(progressData.map((p) => [p.user_id, p._sum.character_count || 0]));
 
-  const membersWithProfile = group.members.map(m => {
-    const profile = profiles.find(p => p.id === m.user_id);
+  const membersWithProfile = group.members.map((m) => {
+    const profile = profiles.find((p) => p.id === m.user_id);
     const progress = progressMap.get(m.user_id) || 0;
     return {
       ...m,

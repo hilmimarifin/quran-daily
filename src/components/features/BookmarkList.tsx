@@ -33,7 +33,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to delete this bookmark?')) return;
-    
+
     startTransition(async () => {
       try {
         await deleteBookmark(id);
@@ -52,7 +52,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
 
   const handleSaveEdit = () => {
     if (!editingBookmark) return;
-    
+
     startTransition(async () => {
       try {
         await renameBookmark(editingBookmark.id, editName);
@@ -76,26 +76,26 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
     <>
       <div className="space-y-3">
         {bookmarks.map((b) => (
-          <Card 
-            key={b.id} 
+          <Card
+            key={b.id}
             className="cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => handleNavigate(b)}
           >
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base font-medium">{b.name}</CardTitle>
               <div className="flex gap-1">
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
+                <Button
+                  size="icon"
+                  variant="ghost"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
                   onClick={(e) => handleEdit(b, e)}
                   disabled={isPending}
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
+                <Button
+                  size="icon"
+                  variant="ghost"
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
                   onClick={(e) => handleDelete(b.id, e)}
                   disabled={isPending}
@@ -111,7 +111,9 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
               {b.groupCount !== undefined && b.groupCount > 0 && (
                 <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                   <Users className="h-3 w-3" />
-                  <span>Used in {b.groupCount} group{b.groupCount > 1 ? 's' : ''}</span>
+                  <span>
+                    Used in {b.groupCount} group{b.groupCount > 1 ? 's' : ''}
+                  </span>
                 </div>
               )}
             </CardContent>
@@ -123,9 +125,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rename Bookmark</DialogTitle>
-            <DialogDescription>
-              Enter a new name for this bookmark.
-            </DialogDescription>
+            <DialogDescription>Enter a new name for this bookmark.</DialogDescription>
           </DialogHeader>
           <Input
             value={editName}

@@ -6,7 +6,7 @@ export function countArabicCharacters(text: string): number {
     const code = char.charCodeAt(0);
     // Arabic Unicode block: 0x0600 to 0x06FF
     // Excludes diacritics (tashkeel) which are in 0x064B-0x0652
-    if (code >= 0x0621 && code <= 0x064A) {
+    if (code >= 0x0621 && code <= 0x064a) {
       count++;
     }
   }
@@ -78,22 +78,26 @@ export async function calculateCharacterProgress(
 }
 
 // Fetch a specific range of verses in a surah
-async function fetchVerseRange(surah: number, fromVerse: number, toVerse: number): Promise<Verse[]> {
+async function fetchVerseRange(
+  surah: number,
+  fromVerse: number,
+  toVerse: number
+): Promise<Verse[]> {
   const verses: Verse[] = [];
-  
+
   // Fetch all verses in the surah and filter
   const response = await fetch(
     `https://api.quran.com/api/v4/verses/by_chapter/${surah}?per_page=300&fields=text_uthmani`
   );
   const data: QuranApiResponse = await response.json();
-  
+
   for (const verse of data.verses) {
     const verseNum = parseInt(verse.verse_key.split(':')[1]);
     if (verseNum >= fromVerse && verseNum <= toVerse) {
       verses.push(verse);
     }
   }
-  
+
   return verses;
 }
 
@@ -103,8 +107,8 @@ async function fetchVersesFromPosition(surah: number, fromVerse: number): Promis
     `https://api.quran.com/api/v4/verses/by_chapter/${surah}?per_page=300&fields=text_uthmani`
   );
   const data: QuranApiResponse = await response.json();
-  
-  return data.verses.filter(verse => {
+
+  return data.verses.filter((verse) => {
     const verseNum = parseInt(verse.verse_key.split(':')[1]);
     return verseNum >= fromVerse;
   });

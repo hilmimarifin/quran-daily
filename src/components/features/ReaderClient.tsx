@@ -1,33 +1,29 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useQuran, Verse } from "@/hooks/useQuran";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, X, BookOpen } from "lucide-react";
-import { BookmarkSheet } from "@/components/features/BookmarkSheet";
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useQuran, Verse } from '@/hooks/useQuran';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, X, BookOpen } from 'lucide-react';
+import { BookmarkSheet } from '@/components/features/BookmarkSheet';
 
 export function ReaderClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   // Read initial values from URL params
-  const initialSurah = searchParams.get("surah");
-  const initialVerse = searchParams.get("verse");
-  const bookmarkName = searchParams.get("bookmark");
+  const initialSurah = searchParams.get('surah');
+  const initialVerse = searchParams.get('verse');
+  const bookmarkName = searchParams.get('bookmark');
 
-  const [chapterId, setChapterId] = useState(
-    initialSurah ? parseInt(initialSurah) : 1
-  );
+  const [chapterId, setChapterId] = useState(initialSurah ? parseInt(initialSurah) : 1);
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useQuran(chapterId, page);
 
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [showContextIndicator, setShowContextIndicator] = useState(
-    !!bookmarkName
-  );
+  const [showContextIndicator, setShowContextIndicator] = useState(!!bookmarkName);
 
   const targetVerseRef = useRef<HTMLDivElement>(null);
   const targetVerseNumber = initialVerse ? parseInt(initialVerse) : null;
@@ -36,8 +32,8 @@ export function ReaderClient() {
   useEffect(() => {
     if (data && targetVerseNumber && targetVerseRef.current) {
       targetVerseRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
+        behavior: 'smooth',
+        block: 'center',
       });
     }
   }, [data, targetVerseNumber]);
@@ -50,7 +46,7 @@ export function ReaderClient() {
   const handleDismissIndicator = () => {
     setShowContextIndicator(false);
     // Clear URL params
-    router.replace("/", { scroll: false });
+    router.replace('/', { scroll: false });
   };
 
   return (
@@ -67,12 +63,7 @@ export function ReaderClient() {
               </div>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={handleDismissIndicator}
-          >
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleDismissIndicator}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -106,13 +97,11 @@ export function ReaderClient() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : isError ? (
-        <div className="text-center text-destructive">
-          Failed to load verses. Please try again.
-        </div>
+        <div className="text-center text-destructive">Failed to load verses. Please try again.</div>
       ) : (
         <div className="space-y-4">
           {data?.verses.map((verse) => {
-            const verseNumber = parseInt(verse.verse_key.split(":")[1]);
+            const verseNumber = parseInt(verse.verse_key.split(':')[1]);
             const isTargetVerse = verseNumber === targetVerseNumber;
 
             return (
@@ -120,9 +109,7 @@ export function ReaderClient() {
                 key={verse.id}
                 ref={isTargetVerse ? targetVerseRef : null}
                 className={`border-none shadow-sm cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.99] ${
-                  isTargetVerse
-                    ? "bg-primary/5 ring-2 ring-primary/30"
-                    : "bg-card/50"
+                  isTargetVerse ? 'bg-primary/5 ring-2 ring-primary/30' : 'bg-card/50'
                 }`}
                 onClick={() => handleVerseClick(verse)}
               >
@@ -132,10 +119,7 @@ export function ReaderClient() {
                       {verse.verse_key}
                     </span>
                   </div>
-                  <p
-                    className="text-right text-2xl font-serif leading-loose"
-                    dir="rtl"
-                  >
+                  <p className="text-right text-2xl font-serif leading-loose" dir="rtl">
                     {verse.text_uthmani}
                   </p>
                 </CardContent>

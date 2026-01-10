@@ -21,7 +21,7 @@ export async function createReadingLog(data: {
 
   const oldPosition = calculatePosition(data.oldSurah, data.oldVerse);
   const newPosition = calculatePosition(data.newSurah, data.newVerse);
-  
+
   // Calculate delta (progress made)
   // If reading forward, delta is positive. If going back, delta is 0 (no progress loss)
   const delta = Math.max(0, newPosition - oldPosition);
@@ -44,9 +44,10 @@ export async function getGroupRankings(groupId: string, period: 'weekly' | 'mont
   const user = await getUser();
   if (!user) return null;
 
-  const { periodStart, periodEnd } = period === 'weekly' 
-    ? { periodStart: getWeekStart(), periodEnd: getWeekEnd() }
-    : { periodStart: getMonthStart(), periodEnd: getMonthEnd() };
+  const { periodStart, periodEnd } =
+    period === 'weekly'
+      ? { periodStart: getWeekStart(), periodEnd: getWeekEnd() }
+      : { periodStart: getMonthStart(), periodEnd: getMonthEnd() };
 
   // Get all reading logs for this group in the period
   const logs = await prisma.readingLog.groupBy({

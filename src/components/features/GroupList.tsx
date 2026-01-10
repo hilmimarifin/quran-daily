@@ -4,7 +4,14 @@ import { useState, useTransition } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Plus, Users, Search } from 'lucide-react';
 import { createGroup, joinGroup } from '@/actions/groups';
 import Link from 'next/link';
@@ -25,7 +32,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
 
   const handleCreate = () => {
     if (!newGroupName.trim()) return;
-    
+
     startTransition(async () => {
       try {
         await createGroup(newGroupName);
@@ -67,10 +74,10 @@ export function GroupList({ groups }: { groups: Group[] }) {
               <DialogTitle>Create New Group</DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              <Input 
-                placeholder="Group Name" 
-                value={newGroupName} 
-                onChange={(e) => setNewGroupName(e.target.value)} 
+              <Input
+                placeholder="Group Name"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
               />
             </div>
             <DialogFooter>
@@ -92,10 +99,10 @@ export function GroupList({ groups }: { groups: Group[] }) {
               <DialogTitle>Join Existing Group</DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              <Input 
-                placeholder="Group ID" 
-                value={joinGroupId} 
-                onChange={(e) => setJoinGroupId(e.target.value)} 
+              <Input
+                placeholder="Group ID"
+                value={joinGroupId}
+                onChange={(e) => setJoinGroupId(e.target.value)}
               />
             </div>
             <DialogFooter>

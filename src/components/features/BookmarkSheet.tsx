@@ -97,9 +97,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
           <>
             <SheetHeader>
               <SheetTitle>Update Bookmark</SheetTitle>
-              <SheetDescription>
-                Select a bookmark to update to {verse?.verse_key}
-              </SheetDescription>
+              <SheetDescription>Select a bookmark to update to {verse?.verse_key}</SheetDescription>
             </SheetHeader>
             <div className="py-4 space-y-2">
               {bookmarks.length === 0 ? (
@@ -108,8 +106,8 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
                 </p>
               ) : (
                 bookmarks.map((bookmark) => (
-                  <Card 
-                    key={bookmark.id} 
+                  <Card
+                    key={bookmark.id}
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => handleSelectBookmark(bookmark)}
                   >
@@ -176,9 +174,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
           <>
             <SheetHeader>
               <SheetTitle>New Bookmark</SheetTitle>
-              <SheetDescription>
-                Create a new bookmark at {verse?.verse_key}
-              </SheetDescription>
+              <SheetDescription>Create a new bookmark at {verse?.verse_key}</SheetDescription>
             </SheetHeader>
             <div className="py-4">
               <div className="grid grid-cols-4 items-center gap-4">

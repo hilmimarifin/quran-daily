@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id           String   @id @db.Uuid
+  display_name String?
+  avatar_url   String?
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("profiles")
+}
+
+model Bookmark {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id      String   @db.Uuid
+  name         String
+  surah_number Int
+  verse_number Int
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  group_members GroupMember[]
+
+  @@map("bookmarks")
+}
+
+model Group {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name       String
+  created_by String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  members      GroupMember[]
+  reading_logs ReadingLog[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id                  String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  group_id            String   @db.Uuid
+  user_id             String   @db.Uuid
+  role                String   @default("member")
+  joined_at           DateTime @default(now()) @db.Timestamptz(6)
+  current_bookmark_id String?  @db.Uuid
+
+  group    Group     @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  bookmark Bookmark? @relation(fields: [current_bookmark_id], references: [id])
+
+  @@unique([group_id, user_id])
+  @@map("group_members")
+}
+
+model ReadingLog {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id         String    @db.Uuid
+  group_id        String?   @db.Uuid
+  character_count Int       @default(0)
+  period_start    DateTime? @db.Timestamptz(6)
+  period_end      DateTime? @db.Timestamptz(6)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  group Group? @relation(fields: [group_id], references: [id])
+
+  @@map("reading_logs")
+}

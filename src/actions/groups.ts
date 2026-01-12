@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getUser } from './auth';
 import { revalidatePath } from 'next/cache';
 import { Bookmark, Group, GroupMember, Profile } from '@prisma/client';
+import { cache } from 'react';
 
 type GroupWithCount = Group & {
   _count: {
@@ -15,7 +16,7 @@ type GroupMemberWithGroup = GroupMember & {
   group: GroupWithCount;
 };
 
-export async function getGroups() {
+export const getGroups = cache(async () => {
   const user = await getUser();
   if (!user) return [];
 
@@ -37,7 +38,7 @@ export async function getGroups() {
     role: m.role,
     memberCount: m.group._count.members,
   }));
-}
+});
 
 export async function createGroup(name: string) {
   const user = await getUser();

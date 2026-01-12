@@ -2,8 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/prisma';
+import { cache } from 'react';
 
-export async function getSession() {
+export const getSession = cache(async () => {
   const supabase = await createClient();
   const {
     data: { session },
@@ -15,9 +16,9 @@ export async function getSession() {
   }
 
   return session;
-}
+});
 
-export async function getUser() {
+export const getUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -42,4 +43,4 @@ export async function getUser() {
   }
 
   return user;
-}
+});

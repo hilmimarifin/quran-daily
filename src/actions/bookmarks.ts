@@ -3,8 +3,9 @@
 import { prisma } from '@/lib/prisma';
 import { getUser } from './auth';
 import { revalidatePath } from 'next/cache';
+import { cache } from 'react';
 
-export async function getBookmarks() {
+export const getBookmarks = cache(async () => {
   const user = await getUser();
   if (!user) return [];
 
@@ -12,7 +13,7 @@ export async function getBookmarks() {
     where: { user_id: user.id },
     orderBy: { updated_at: 'desc' },
   });
-}
+});
 
 export async function addBookmark(data: {
   name: string;

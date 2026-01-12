@@ -18,6 +18,24 @@ export interface QuranResponse {
   };
 }
 
+export interface ChapterResponse {
+  chapters: {
+    id: number;
+    revelation_place: string;
+    revelation_order: number;
+    bismillah_pre: boolean;
+    name_simple: string;
+    name_complex: string;
+    name_arabic: string;
+    verses_count: number;
+    pages: number[];
+    translated_name: {
+      language_name: string;
+      name: string;
+    };
+  }[];
+}
+
 const fetchVerses = async (chapterId: number = 1, page: number = 1) => {
   const { data } = await axios.get<QuranResponse>(
     `https://api.quran.com/api/v4/verses/by_chapter/${chapterId}`,
@@ -36,9 +54,21 @@ const fetchVerses = async (chapterId: number = 1, page: number = 1) => {
   return data;
 };
 
+const fetchChapters = async () => {
+  const { data } = await axios.get<ChapterResponse>(`https://api.quran.com/api/v4/chapters`);
+  return data;
+};
+
 export const useQuran = (chapterId: number, page: number) => {
   return useQuery({
     queryKey: ['quran', chapterId, page],
     queryFn: () => fetchVerses(chapterId, page),
+  });
+};
+
+export const useChapters = () => {
+  return useQuery({
+    queryKey: ['chapters'],
+    queryFn: () => fetchChapters(),
   });
 };

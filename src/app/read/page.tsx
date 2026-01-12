@@ -1,7 +1,6 @@
-import { Suspense } from 'react';
 import { ReaderClient } from '@/components/features/ReaderClient';
 import { Loader2 } from 'lucide-react';
-import ChapterList from '@/components/features/ChapterList';
+import { Suspense } from 'react';
 
 export default function ReaderPage() {
   return (
@@ -12,10 +11,7 @@ export default function ReaderPage() {
         </div>
       }
     >
-      {/* <ReaderClient /> */}
-      <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
-        <ChapterList />
-      </div>
+      <ReaderClient />
     </Suspense>
   );
 }

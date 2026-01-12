@@ -1,12 +1,30 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuran, Verse } from '@/hooks/useQuran';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, X, BookOpen } from 'lucide-react';
+import { X, BookOpen } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BookmarkSheet } from '@/components/features/BookmarkSheet';
+
+// Loading skeleton component for verses
+function VerseSkeleton() {
+  return (
+    <Card className="border-none shadow-sm bg-card/50">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <Skeleton className="h-6 w-16 rounded-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-3/4 ml-auto" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function ReaderClient() {
   const searchParams = useSearchParams();
@@ -19,6 +37,8 @@ export function ReaderClient() {
 
   const [chapterId, setChapterId] = useState(initialSurah ? parseInt(initialSurah) : 1);
   const [page, setPage] = useState(1);
+  // Store pages of verses keyed by page number to avoid duplicate fetches
+  const [versesByPage, setVersesByPage] = useState<Record<number, Verse[]>>({});
   const { data, isLoading, isError } = useQuran(chapterId, page);
 
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
@@ -27,16 +47,61 @@ export function ReaderClient() {
 
   const targetVerseRef = useRef<HTMLDivElement>(null);
   const targetVerseNumber = initialVerse ? parseInt(initialVerse) : null;
+  const observerRef = useRef<HTMLDivElement>(null);
+  const hasNextPage = data?.pagination.next_page ?? false;
+
+  // Store verses when data loads (keyed by page to avoid re-setting)
+  const currentPageVerses = data?.verses;
+  if (currentPageVerses && !versesByPage[page]) {
+    // This runs during render, not in an effect, avoiding cascading renders
+    setVersesByPage((prev) => ({ ...prev, [page]: currentPageVerses }));
+  }
+
+  // Compute all verses from the pages we've loaded
+  const allVerses = useMemo(() => {
+    const pages = Object.keys(versesByPage)
+      .map(Number)
+      .sort((a, b) => a - b);
+    return pages.flatMap((p) => versesByPage[p]);
+  }, [versesByPage]);
 
   // Scroll to verse when data loads
   useEffect(() => {
-    if (data && targetVerseNumber && targetVerseRef.current) {
+    if (allVerses.length > 0 && targetVerseNumber && targetVerseRef.current) {
       targetVerseRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
       });
     }
-  }, [data, targetVerseNumber]);
+  }, [allVerses, targetVerseNumber]);
+
+  // Infinite scroll with IntersectionObserver at 75% threshold
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasNextPage) {
+      setPage((p) => p + 1);
+    }
+  }, [isLoading, hasNextPage]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.75, // Trigger when 75% visible
+      }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   const handleVerseClick = (verse: Verse) => {
     setSelectedVerse(verse);
@@ -46,8 +111,19 @@ export function ReaderClient() {
   const handleDismissIndicator = () => {
     setShowContextIndicator(false);
     // Clear URL params
-    router.replace('/', { scroll: false });
+    router.replace('/read', { scroll: false });
   };
+
+  const handleChapterChange = (newChapterId: number) => {
+    setVersesByPage({});
+    setPage(1);
+    setChapterId(newChapterId);
+  };
+
+  // Show initial loading state
+  const showInitialLoading = isLoading && allVerses.length === 0;
+  // Show loading skeleton at the bottom when loading more
+  const showLoadingMore = isLoading && allVerses.length > 0;
 
   return (
     <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
@@ -76,7 +152,7 @@ export function ReaderClient() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setChapterId((c) => Math.max(1, c - 1))}
+            onClick={() => handleChapterChange(Math.max(1, chapterId - 1))}
             disabled={chapterId <= 1}
           >
             Prev
@@ -84,7 +160,7 @@ export function ReaderClient() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setChapterId((c) => Math.min(114, c + 1))}
+            onClick={() => handleChapterChange(Math.min(114, chapterId + 1))}
             disabled={chapterId >= 114}
           >
             Next
@@ -92,15 +168,17 @@ export function ReaderClient() {
         </div>
       </header>
 
-      {isLoading ? (
-        <div className="flex justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      {showInitialLoading ? (
+        <div className="space-y-4">
+          <VerseSkeleton />
+          <VerseSkeleton />
+          <VerseSkeleton />
         </div>
       ) : isError ? (
         <div className="text-center text-destructive">Failed to load verses. Please try again.</div>
       ) : (
         <div className="space-y-4">
-          {data?.verses.map((verse) => {
+          {allVerses.map((verse) => {
             const verseNumber = parseInt(verse.verse_key.split(':')[1]);
             const isTargetVerse = verseNumber === targetVerseNumber;
 
@@ -127,11 +205,18 @@ export function ReaderClient() {
             );
           })}
 
-          <div className="flex justify-center pt-4">
-            {data?.pagination.next_page && (
-              <Button onClick={() => setPage((p) => p + 1)}>Load More</Button>
-            )}
-          </div>
+          {/* Loading skeleton for infinite scroll */}
+          {showLoadingMore && (
+            <div className="space-y-4">
+              <VerseSkeleton />
+              <VerseSkeleton />
+            </div>
+          )}
+
+          {/* Intersection observer trigger element */}
+          {hasNextPage && !isLoading && (
+            <div ref={observerRef} className="h-20" aria-hidden="true" />
+          )}
         </div>
       )}
 

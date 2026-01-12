@@ -65,7 +65,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
   };
 
   const handleNavigate = (b: Bookmark) => {
-    router.push(`/?surah=${b.surah_number}&verse=${b.verse_number}&bookmark=${b.name}`);
+    router.push(`/read/?surah=${b.surah_number}&verse=${b.verse_number}&bookmark=${b.name}`);
   };
 
   if (bookmarks.length === 0) {

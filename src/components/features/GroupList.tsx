@@ -40,7 +40,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
         setNewGroupName('');
       } catch (error) {
         console.error(error);
-        alert('Failed to create group');
+        alert('Gagal membuat grup');
       }
     });
   };
@@ -55,7 +55,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
         setJoinGroupId('');
       } catch (error) {
         console.error(error);
-        alert('Failed to join group (ID might be invalid)');
+        alert('Gagal bergabung dengan grup (Id tidak valid)');
       }
     });
   };
@@ -66,23 +66,23 @@ export function GroupList({ groups }: { groups: Group[] }) {
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button className="flex-1 gap-2">
-              <Plus className="h-4 w-4" /> Create Group
+              <Plus className="h-4 w-4" /> Buat Grup
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Group</DialogTitle>
+              <DialogTitle>Buat Grup Baru</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <Input
-                placeholder="Group Name"
+                placeholder="Nama Grup"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
               />
             </div>
             <DialogFooter>
               <Button onClick={handleCreate} disabled={isPending}>
-                {isPending ? 'Creating...' : 'Create'}
+                {isPending ? 'Membuat...' : 'Buat'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -91,23 +91,23 @@ export function GroupList({ groups }: { groups: Group[] }) {
         <Dialog open={isJoinOpen} onOpenChange={setIsJoinOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="flex-1 gap-2">
-              <Search className="h-4 w-4" /> Join Group
+              <Search className="h-4 w-4" /> Bergabung dengan Grup
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Join Existing Group</DialogTitle>
+              <DialogTitle>Bergabung dengan Grup</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <Input
-                placeholder="Group ID"
+                placeholder="ID Grup"
                 value={joinGroupId}
                 onChange={(e) => setJoinGroupId(e.target.value)}
               />
             </div>
             <DialogFooter>
               <Button onClick={handleJoin} disabled={isPending}>
-                {isPending ? 'Joining...' : 'Join'}
+                {isPending ? 'Bergabung...' : 'Gabung grup'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -117,7 +117,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
       <div className="space-y-3">
         {groups.length === 0 ? (
           <div className="text-center text-muted-foreground py-10">
-            You havent joined any groups yet.
+            Belum ada grup yang kamu ikuti.
           </div>
         ) : (
           groups.map((g) => (
@@ -130,7 +130,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
                 <CardContent>
                   <div className="flex justify-between items-end">
                     <div className="text-sm text-muted-foreground">
-                      <p>Members: {g.memberCount}</p>
+                      <p>Anggota: {g.memberCount}</p>
                       <p>Role: {g.role}</p>
                     </div>
                   </div>

@@ -10,17 +10,17 @@ export function BottomNav() {
 
   const navItems = [
     {
-      label: 'Read',
+      label: 'Baca',
       href: '/',
       icon: BookOpen,
     },
     {
-      label: 'Bookmarks',
+      label: 'Hanca',
       href: '/bookmarks',
       icon: Bookmark,
     },
     {
-      label: 'Groups',
+      label: 'Grup',
       href: '/groups',
       icon: Users,
     },

@@ -7,7 +7,7 @@ export default async function GroupsPage() {
   return (
     <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
       <header className="flex items-center justify-between py-2">
-        <h1 className="text-2xl font-bold">Groups</h1>
+        <h1 className="text-2xl font-bold">Grup</h1>
       </header>
       <GroupList groups={groups} />
     </div>

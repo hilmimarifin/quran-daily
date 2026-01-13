@@ -1,12 +1,8 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Trash2, Pencil, Users } from 'lucide-react';
 import { deleteBookmark, renameBookmark } from '@/actions/bookmarks';
-import { useTransition, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Pencil, Trash2, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 
 interface Bookmark {
   id: string;
@@ -32,14 +32,14 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this bookmark?')) return;
+    if (!confirm('Anda yakin ingin menghapus hanca ini?')) return;
 
     startTransition(async () => {
       try {
         await deleteBookmark(id);
       } catch (error) {
         console.error(error);
-        alert('Failed to delete bookmark');
+        alert('Gagal menghapus hanca');
       }
     });
   };
@@ -59,7 +59,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
         setEditingBookmark(null);
       } catch (error) {
         console.error(error);
-        alert('Failed to rename bookmark');
+        alert('Gagal mengubah nama hanca');
       }
     });
   };
@@ -69,7 +69,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
   };
 
   if (bookmarks.length === 0) {
-    return <div className="text-center text-muted-foreground py-10">No bookmarks yet.</div>;
+    return <div className="text-center text-muted-foreground py-10">Belum ada hanca.</div>;
   }
 
   return (
@@ -113,7 +113,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Users className="h-3 w-3" />
                     <span>
-                      Used in {b.groupCount} group{b.groupCount > 1 ? 's' : ''}
+                      Digunakan dalam {b.groupCount} group{b.groupCount > 1 ? 's' : ''}
                     </span>
                   </div>
                 )}
@@ -126,20 +126,20 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
       <Dialog open={!!editingBookmark} onOpenChange={() => setEditingBookmark(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename Bookmark</DialogTitle>
-            <DialogDescription>Enter a new name for this bookmark.</DialogDescription>
+            <DialogTitle>Ubah Nama Hanca</DialogTitle>
+            <DialogDescription>Masukkan nama hanca baru</DialogDescription>
           </DialogHeader>
           <Input
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            placeholder="Bookmark name"
+            placeholder="Nama hanca"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingBookmark(null)}>
-              Cancel
+              Batal
             </Button>
             <Button onClick={handleSaveEdit} disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save'}
+              {isPending ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </DialogContent>

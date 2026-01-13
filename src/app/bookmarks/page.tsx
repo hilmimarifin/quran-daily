@@ -9,10 +9,10 @@ export default async function BookmarksPage() {
   return (
     <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
       <header className="flex items-center justify-between py-2">
-        <h1 className="text-2xl font-bold">Bookmarks</h1>
-        <Button size="icon" variant="ghost">
+        <h1 className="text-2xl font-bold">Hanca</h1>
+        {/* <Button size="icon" variant="ghost">
           <Plus className="h-6 w-6" />
-        </Button>
+        </Button> */}
       </header>
       <BookmarkList bookmarks={bookmarks} />
     </div>

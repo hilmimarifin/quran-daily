@@ -99,9 +99,9 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
       <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh] overflow-y-auto px-2">
         {view === 'list' && (
           <>
-            <SheetHeader className=''>
-              <SheetTitle>Update Bookmark</SheetTitle>
-              <SheetDescription>Select a bookmark to update to {verse?.verse_key}</SheetDescription>
+            <SheetHeader className="">
+              <SheetTitle>Perbaharui Hanca</SheetTitle>
+              <SheetDescription>Pilih hanca untuk {verse?.verse_key}</SheetDescription>
             </SheetHeader>
             <div className="space-y-2">
               {isLoading ? (
@@ -121,7 +121,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
                 </>
               ) : bookmarks.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No bookmarks yet. Create your first one!
+                  Tidak ada hanca. Buat hanca pertama!
                 </p>
               ) : (
                 bookmarks.map((bookmark) => (
@@ -146,7 +146,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
             <SheetFooter>
               <Button variant="outline" onClick={() => setView('new')} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
-                Create New Bookmark
+                Buat Hanca Baru
               </Button>
             </SheetFooter>
           </>
@@ -192,13 +192,13 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
         {view === 'new' && (
           <>
             <SheetHeader>
-              <SheetTitle>New Bookmark</SheetTitle>
-              <SheetDescription>Create a new bookmark at {verse?.verse_key}</SheetDescription>
+              <SheetTitle>Hanca Baru</SheetTitle>
+              <SheetDescription>Buat hanca baru untuk {verse?.verse_key}</SheetDescription>
             </SheetHeader>
             <div className="py-4 px-4">
               <div className="">
                 <Label htmlFor="name" className="text-right mb-2">
-                  Name
+                  Nama hanca
                 </Label>
                 <Input
                   id="name"
@@ -210,10 +210,10 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
             </div>
             <SheetFooter className="flex gap-2">
               <Button variant="outline" onClick={() => setView('list')} className="flex-1">
-                Back
+                Kembali
               </Button>
               <Button onClick={handleCreateNew} disabled={isPending} className="flex-1">
-                {isPending ? 'Creating...' : 'Create Bookmark'}
+                {isPending ? 'Membuat...' : 'Buat'}
               </Button>
             </SheetFooter>
           </>

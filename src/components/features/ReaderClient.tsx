@@ -5,7 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuran, useChapters, Verse } from '@/hooks/useQuran';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, BookOpen } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { BookOpen, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BookmarkSheet } from '@/components/features/BookmarkSheet';
 
@@ -40,12 +41,12 @@ export function ReaderClient() {
 
   // Fetch chapters to get verses_count
   const { data: chaptersData } = useChapters();
-  
+
   // Get current chapter info
   const currentChapter = useMemo(() => {
     return chaptersData?.chapters.find((c) => c.id === chapterId);
   }, [chaptersData, chapterId]);
-  
+
   const versesCount = currentChapter?.verses_count ?? 0;
 
   // Fetch all verses for the chapter in a single API call
@@ -56,13 +57,34 @@ export function ReaderClient() {
   const [showContextIndicator, setShowContextIndicator] = useState(!!bookmarkName);
   const [hasScrolledToTarget, setHasScrolledToTarget] = useState(false);
 
+  const [searchVerse, setSearchVerse] = useState('');
   const targetVerseRef = useRef<HTMLDivElement>(null);
+
+  const handleSearchVerse = () => {
+    const verseNum = parseInt(searchVerse);
+    if (isNaN(verseNum)) return;
+
+    if (verseNum < 1 || verseNum > versesCount) {
+      alert(`Masukkan nomor ayat antara 1 dan ${versesCount}`);
+      return;
+    }
+
+    const element = document.getElementById(`verse-${verseNum}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const allVerses = data?.verses ?? [];
 
   // Scroll to target verse when data loads
   useEffect(() => {
-    if (!hasScrolledToTarget && allVerses.length > 0 && targetVerseNumber && targetVerseRef.current) {
+    if (
+      !hasScrolledToTarget &&
+      allVerses.length > 0 &&
+      targetVerseNumber &&
+      targetVerseRef.current
+    ) {
       const timer = setTimeout(() => {
         targetVerseRef.current?.scrollIntoView({
           behavior: 'smooth',
@@ -95,7 +117,7 @@ export function ReaderClient() {
     <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
       {/* Context Indicator - shown when navigating from bookmark */}
       {showContextIndicator && bookmarkName && (
-        <div className="sticky top-16 z-40 bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center justify-between">
+        <div className="sticky top-28 z-40 bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-primary" />
             <div>
@@ -111,31 +133,47 @@ export function ReaderClient() {
         </div>
       )}
 
-      <header className="flex items-center justify-between py-2">
-        <div>
-          <h1 className="text-xl font-bold">
-            {currentChapter?.name_simple ?? `Surah ${chapterId}`}
-          </h1>
-          {currentChapter && (
-            <p className="text-sm text-muted-foreground">{currentChapter.name_arabic}</p>
-          )}
+      <header className="flex flex-col gap-4 py-2 sticky top-0 z-30 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold">
+              {currentChapter?.name_simple ?? `Surah ${chapterId}`}
+            </h1>
+            {currentChapter && (
+              <p className="text-sm text-muted-foreground">{currentChapter.name_arabic}</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleChapterChange(Math.max(1, chapterId - 1))}
+              disabled={chapterId <= 1}
+            >
+              Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleChapterChange(Math.min(114, chapterId + 1))}
+              disabled={chapterId >= 114}
+            >
+              Next
+            </Button>
+          </div>
         </div>
+
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleChapterChange(Math.max(1, chapterId - 1))}
-            disabled={chapterId <= 1}
-          >
-            Prev
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleChapterChange(Math.min(114, chapterId + 1))}
-            disabled={chapterId >= 114}
-          >
-            Next
+          <Input
+            type="number"
+            placeholder={`Masukkan nomor ayat...`}
+            value={searchVerse}
+            onChange={(e) => setSearchVerse(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearchVerse()}
+            className="flex-1"
+          />
+          <Button size="icon" onClick={handleSearchVerse}>
+            <Search className="h-4 w-4" />
           </Button>
         </div>
       </header>
@@ -147,7 +185,7 @@ export function ReaderClient() {
           <VerseSkeleton />
         </div>
       ) : isError ? (
-        <div className="text-center text-destructive">Failed to load verses. Please try again.</div>
+        <div className="text-center text-destructive">Gagal memuat ayat. Silahkan coba lagi.</div>
       ) : (
         <div className="space-y-4">
           {allVerses.map((verse) => {
@@ -157,18 +195,17 @@ export function ReaderClient() {
             return (
               <Card
                 key={verse.id}
+                id={`verse-${verseNumber}`}
                 ref={isTargetVerse ? targetVerseRef : null}
-                className={`border-none shadow-sm cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.99] ${
+                className={`border-none shadow-sm cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.99] pb-0 ${
                   isTargetVerse ? 'bg-primary/5 ring-2 ring-primary/30' : 'bg-card/50'
                 }`}
                 onClick={() => handleVerseClick(verse)}
               >
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                      {verse.verse_key}
-                    </span>
-                  </div>
+                <CardContent className="">
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                    {verse.verse_number}
+                  </span>
                   <p className="text-right text-2xl font-serif leading-loose" dir="rtl">
                     {verse.text_uthmani}
                   </p>

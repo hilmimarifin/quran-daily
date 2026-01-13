@@ -5,6 +5,7 @@ export interface Verse {
   id: number;
   verse_key: string;
   text_uthmani: string;
+  verse_number?: number;
 }
 
 export interface QuranResponse {
@@ -18,25 +19,28 @@ export interface QuranResponse {
   };
 }
 
-export interface ChapterResponse {
-  chapters: {
-    id: number;
-    revelation_place: string;
-    revelation_order: number;
-    bismillah_pre: boolean;
-    name_simple: string;
-    name_complex: string;
-    name_arabic: string;
-    verses_count: number;
-    pages: number[];
-    translated_name: {
-      language_name: string;
-      name: string;
-    };
-  }[];
+export interface Chapter {
+  id: number;
+  revelation_place: string;
+  revelation_order: number;
+  bismillah_pre: boolean;
+  name_simple: string;
+  name_complex: string;
+  name_arabic: string;
+  verses_count: number;
+  pages: number[];
+  translated_name: {
+    language_name: string;
+    name: string;
+  };
 }
 
-const fetchVerses = async (chapterId: number = 1, page: number = 1) => {
+export interface ChapterResponse {
+  chapters: Chapter[];
+}
+
+// Fetch all verses for a chapter in a single API call
+const fetchAllVerses = async (chapterId: number, versesCount: number) => {
   const { data } = await axios.get<QuranResponse>(
     `https://api.quran.com/api/v4/verses/by_chapter/${chapterId}`,
     {
@@ -45,8 +49,8 @@ const fetchVerses = async (chapterId: number = 1, page: number = 1) => {
         words: false,
         translations: false,
         audio: false,
-        page: page,
-        per_page: 10, // Small for MVP demo
+        page: 1,
+        per_page: versesCount, // Get all verses in one call
         fields: 'text_uthmani',
       },
     }
@@ -59,10 +63,12 @@ const fetchChapters = async () => {
   return data;
 };
 
-export const useQuran = (chapterId: number, page: number) => {
+// Fetch all verses for a chapter using verses_count
+export const useQuran = (chapterId: number, versesCount: number) => {
   return useQuery({
-    queryKey: ['quran', chapterId, page],
-    queryFn: () => fetchVerses(chapterId, page),
+    queryKey: ['quran', chapterId, 'all'],
+    queryFn: () => fetchAllVerses(chapterId, versesCount),
+    enabled: versesCount > 0, // Only fetch when we have verses_count
   });
 };
 
@@ -70,5 +76,6 @@ export const useChapters = () => {
   return useQuery({
     queryKey: ['chapters'],
     queryFn: () => fetchChapters(),
+    staleTime: Infinity, // Chapters don't change, cache forever
   });
 };

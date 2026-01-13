@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -15,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Verse } from '@/hooks/useQuran';
 import { addBookmark, getBookmarks, updateBookmark } from '@/actions/bookmarks';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Plus, BookOpen } from 'lucide-react';
 
 interface Bookmark {
@@ -39,14 +41,16 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
   const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | null>(null);
   const [newName, setNewName] = useState('Daily Reading');
   const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
 
   const verseNumber = verse ? parseInt(verse.verse_key.split(':')[1]) : 0;
 
   useEffect(() => {
     if (isOpen) {
-      getBookmarks().then(setBookmarks);
-      // setView('list');
-      // setSelectedBookmark(null);
+      setIsLoading(true);
+      getBookmarks()
+        .then(setBookmarks)
+        .finally(() => setIsLoading(false));
     }
   }, [isOpen]);
 
@@ -92,7 +96,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh] overflow-y-auto">
+      <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh] overflow-y-auto px-2">
         {view === 'list' && (
           <>
             <SheetHeader>
@@ -100,7 +104,22 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
               <SheetDescription>Select a bookmark to update to {verse?.verse_key}</SheetDescription>
             </SheetHeader>
             <div className="py-4 space-y-2">
-              {bookmarks.length === 0 ? (
+              {isLoading ? (
+                // Loading skeletons
+                <>
+                  {[1, 2].map((i) => (
+                    <Card key={i} className="border-none">
+                      <CardContent className="px-3 flex items-center gap-3">
+                        <Skeleton className="h-5 w-5 rounded" />
+                        <div className="flex-1 space-y-1">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              ) : bookmarks.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No bookmarks yet. Create your first one!
                 </p>
@@ -111,12 +130,12 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => handleSelectBookmark(bookmark)}
                   >
-                    <CardContent className="p-3 flex items-center gap-3">
+                    <CardContent className="px-3 flex items-center gap-3">
                       <BookOpen className="h-5 w-5 text-muted-foreground" />
                       <div className="flex-1">
                         <div className="font-medium text-sm">{bookmark.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          Surah {bookmark.surah_number}, Verse {bookmark.verse_number}
+                          Surah {bookmark.surah_number}: {bookmark.verse_number}
                         </div>
                       </div>
                     </CardContent>
@@ -176,9 +195,9 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
               <SheetTitle>New Bookmark</SheetTitle>
               <SheetDescription>Create a new bookmark at {verse?.verse_key}</SheetDescription>
             </SheetHeader>
-            <div className="py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
+            <div className="py-4 px-4">
+              <div className="">
+                <Label htmlFor="name" className="text-right mb-2">
                   Name
                 </Label>
                 <Input

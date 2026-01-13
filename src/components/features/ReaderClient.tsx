@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useQuran, Verse } from '@/hooks/useQuran';
+import { useQuran, useChapters, Verse } from '@/hooks/useQuran';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, BookOpen } from 'lucide-react';
@@ -36,72 +36,43 @@ export function ReaderClient() {
   const bookmarkName = searchParams.get('bookmark');
 
   const [chapterId, setChapterId] = useState(initialSurah ? parseInt(initialSurah) : 1);
-  const [page, setPage] = useState(1);
-  // Store pages of verses keyed by page number to avoid duplicate fetches
-  const [versesByPage, setVersesByPage] = useState<Record<number, Verse[]>>({});
-  const { data, isLoading, isError } = useQuran(chapterId, page);
+  const targetVerseNumber = initialVerse ? parseInt(initialVerse) : null;
+
+  // Fetch chapters to get verses_count
+  const { data: chaptersData } = useChapters();
+  
+  // Get current chapter info
+  const currentChapter = useMemo(() => {
+    return chaptersData?.chapters.find((c) => c.id === chapterId);
+  }, [chaptersData, chapterId]);
+  
+  const versesCount = currentChapter?.verses_count ?? 0;
+
+  // Fetch all verses for the chapter in a single API call
+  const { data, isLoading, isError } = useQuran(chapterId, versesCount);
 
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [showContextIndicator, setShowContextIndicator] = useState(!!bookmarkName);
+  const [hasScrolledToTarget, setHasScrolledToTarget] = useState(false);
 
   const targetVerseRef = useRef<HTMLDivElement>(null);
-  const targetVerseNumber = initialVerse ? parseInt(initialVerse) : null;
-  const observerRef = useRef<HTMLDivElement>(null);
-  const hasNextPage = data?.pagination.next_page ?? false;
 
-  // Store verses when data loads (keyed by page to avoid re-setting)
-  const currentPageVerses = data?.verses;
-  if (currentPageVerses && !versesByPage[page]) {
-    // This runs during render, not in an effect, avoiding cascading renders
-    setVersesByPage((prev) => ({ ...prev, [page]: currentPageVerses }));
-  }
+  const allVerses = data?.verses ?? [];
 
-  // Compute all verses from the pages we've loaded
-  const allVerses = useMemo(() => {
-    const pages = Object.keys(versesByPage)
-      .map(Number)
-      .sort((a, b) => a - b);
-    return pages.flatMap((p) => versesByPage[p]);
-  }, [versesByPage]);
-
-  // Scroll to verse when data loads
+  // Scroll to target verse when data loads
   useEffect(() => {
-    if (allVerses.length > 0 && targetVerseNumber && targetVerseRef.current) {
-      targetVerseRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
+    if (!hasScrolledToTarget && allVerses.length > 0 && targetVerseNumber && targetVerseRef.current) {
+      const timer = setTimeout(() => {
+        targetVerseRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        setHasScrolledToTarget(true);
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [allVerses, targetVerseNumber]);
-
-  // Infinite scroll with IntersectionObserver at 75% threshold
-  const loadMore = useCallback(() => {
-    if (!isLoading && hasNextPage) {
-      setPage((p) => p + 1);
-    }
-  }, [isLoading, hasNextPage]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
-      },
-      {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.75, // Trigger when 75% visible
-      }
-    );
-
-    if (observerRef.current) {
-      observer.observe(observerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [loadMore]);
+  }, [allVerses.length, targetVerseNumber, hasScrolledToTarget]);
 
   const handleVerseClick = (verse: Verse) => {
     setSelectedVerse(verse);
@@ -110,20 +81,15 @@ export function ReaderClient() {
 
   const handleDismissIndicator = () => {
     setShowContextIndicator(false);
-    // Clear URL params
     router.replace('/read', { scroll: false });
   };
 
   const handleChapterChange = (newChapterId: number) => {
-    setVersesByPage({});
-    setPage(1);
     setChapterId(newChapterId);
+    setHasScrolledToTarget(false);
   };
 
-  // Show initial loading state
-  const showInitialLoading = isLoading && allVerses.length === 0;
-  // Show loading skeleton at the bottom when loading more
-  const showLoadingMore = isLoading && allVerses.length > 0;
+  const showLoading = isLoading || !chaptersData;
 
   return (
     <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
@@ -146,8 +112,14 @@ export function ReaderClient() {
       )}
 
       <header className="flex items-center justify-between py-2">
-        <h1 className="text-xl font-bold">Surah {chapterId}</h1>
-        {/* Simple navigation for MVP */}
+        <div>
+          <h1 className="text-xl font-bold">
+            {currentChapter?.name_simple ?? `Surah ${chapterId}`}
+          </h1>
+          {currentChapter && (
+            <p className="text-sm text-muted-foreground">{currentChapter.name_arabic}</p>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -168,7 +140,7 @@ export function ReaderClient() {
         </div>
       </header>
 
-      {showInitialLoading ? (
+      {showLoading ? (
         <div className="space-y-4">
           <VerseSkeleton />
           <VerseSkeleton />
@@ -204,19 +176,6 @@ export function ReaderClient() {
               </Card>
             );
           })}
-
-          {/* Loading skeleton for infinite scroll */}
-          {showLoadingMore && (
-            <div className="space-y-4">
-              <VerseSkeleton />
-              <VerseSkeleton />
-            </div>
-          )}
-
-          {/* Intersection observer trigger element */}
-          {hasNextPage && !isLoading && (
-            <div ref={observerRef} className="h-20" aria-hidden="true" />
-          )}
         </div>
       )}
 

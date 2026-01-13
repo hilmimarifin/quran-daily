@@ -95,7 +95,7 @@ export function ReaderClient() {
     <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
       {/* Context Indicator - shown when navigating from bookmark */}
       {showContextIndicator && bookmarkName && (
-        <div className="sticky top-14 z-40 bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center justify-between">
+        <div className="sticky top-16 z-40 bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-primary" />
             <div>

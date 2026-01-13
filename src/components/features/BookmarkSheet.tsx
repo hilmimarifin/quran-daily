@@ -99,16 +99,16 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
       <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh] overflow-y-auto px-2">
         {view === 'list' && (
           <>
-            <SheetHeader>
+            <SheetHeader className=''>
               <SheetTitle>Update Bookmark</SheetTitle>
               <SheetDescription>Select a bookmark to update to {verse?.verse_key}</SheetDescription>
             </SheetHeader>
-            <div className="py-4 space-y-2">
+            <div className="space-y-2">
               {isLoading ? (
                 // Loading skeletons
                 <>
                   {[1, 2].map((i) => (
-                    <Card key={i} className="border-none">
+                    <Card key={i} className="border-none p-3">
                       <CardContent className="px-3 flex items-center gap-3">
                         <Skeleton className="h-5 w-5 rounded" />
                         <div className="flex-1 space-y-1">
@@ -127,7 +127,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
                 bookmarks.map((bookmark) => (
                   <Card
                     key={bookmark.id}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors p-3"
                     onClick={() => handleSelectBookmark(bookmark)}
                   >
                     <CardContent className="px-3 flex items-center gap-3">

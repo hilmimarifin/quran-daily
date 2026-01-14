@@ -17,6 +17,7 @@ import { getChapterName } from '@/lib/utils';
 import { Pencil, Trash2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
 interface Bookmark {
   id: string;
@@ -40,9 +41,10 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
     startTransition(async () => {
       try {
         await deleteBookmark(id);
+        toast.success('Hanca berhasil dihapus');
       } catch (error) {
         console.error(error);
-        alert('Gagal menghapus hanca');
+        toast.error('Gagal menghapus hanca');
       }
     });
   };
@@ -59,10 +61,11 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
     startTransition(async () => {
       try {
         await renameBookmark(editingBookmark.id, editName);
+        toast.success('Nama hanca berhasil diubah');
         setEditingBookmark(null);
       } catch (error) {
         console.error(error);
-        alert('Gagal mengubah nama hanca');
+        toast.error('Gagal mengubah nama hanca');
       }
     });
   };

@@ -17,6 +17,7 @@ import { setActiveBookmarkForGroup, leaveGroup } from '@/actions/groups';
 import { useRouter } from 'next/navigation';
 import { getChapterName } from '@/lib/utils';
 import { useChapters } from '@/hooks/useQuran';
+import { toast } from 'sonner';
 
 interface Member {
   id: string;
@@ -76,10 +77,11 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
     startTransition(async () => {
       try {
         await setActiveBookmarkForGroup(group.id, bookmarkId);
+        toast.success('Hanca berhasil dipilih');
         setIsBookmarkDialogOpen(false);
       } catch (error) {
         console.error(error);
-        alert('Failed to set bookmark');
+        toast.error('Gagal mengatur hanca');
       }
     });
   };
@@ -90,10 +92,11 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
     startTransition(async () => {
       try {
         await leaveGroup(group.id);
+        toast.success('Berhasil keluar dari grup');
         router.push('/groups');
       } catch (error) {
         console.error(error);
-        alert('Failed to leave group');
+        toast.error('Gagal keluar dari grup');
       }
     });
   };
@@ -114,7 +117,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
               className="h-6 text-xs px-2"
               onClick={() => {
                 navigator.clipboard.writeText(group.id);
-                alert('Group ID copied!');
+                toast.success('ID Grup disalin!');
               }}
             >
               Copy

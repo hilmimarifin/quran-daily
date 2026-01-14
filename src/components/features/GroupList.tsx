@@ -15,6 +15,7 @@ import {
 import { Plus, Users, Search } from 'lucide-react';
 import { createGroup, joinGroup } from '@/actions/groups';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 interface Group {
   id: string;
@@ -36,11 +37,12 @@ export function GroupList({ groups }: { groups: Group[] }) {
     startTransition(async () => {
       try {
         await createGroup(newGroupName);
+        toast.success('Grup berhasil dibuat');
         setIsCreateOpen(false);
         setNewGroupName('');
       } catch (error) {
         console.error(error);
-        alert('Gagal membuat grup');
+        toast.error('Gagal membuat grup');
       }
     });
   };
@@ -51,11 +53,12 @@ export function GroupList({ groups }: { groups: Group[] }) {
     startTransition(async () => {
       try {
         await joinGroup(joinGroupId);
+        toast.success('Berhasil bergabung dengan grup');
         setIsJoinOpen(false);
         setJoinGroupId('');
       } catch (error) {
         console.error(error);
-        alert('Gagal bergabung dengan grup (Id tidak valid)');
+        toast.error('Gagal bergabung dengan grup (ID tidak valid)');
       }
     });
   };

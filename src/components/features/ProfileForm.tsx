@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateProfile } from '@/actions/profile';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface Profile {
   id: string;
@@ -38,11 +39,11 @@ export function ProfileForm({
     startTransition(async () => {
       try {
         await updateProfile({ displayName, avatarUrl });
-        alert('Profile updated!');
+        toast.success('Profil berhasil diperbarui!');
         router.refresh();
       } catch (error) {
         console.error(error);
-        alert('Failed to update profile');
+        toast.error('Gagal memperbarui profil');
       }
     });
   };

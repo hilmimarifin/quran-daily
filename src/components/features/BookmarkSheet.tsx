@@ -19,6 +19,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Plus, BookOpen } from 'lucide-react';
 import { getChapterName } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface Bookmark {
   id: string;
@@ -70,10 +71,11 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId, chaptersData 
           surah_number: chapterId,
           verse_number: verseNumber,
         });
+        toast.success('Hanca berhasil diperbarui');
         onClose();
       } catch (error) {
         console.error(error);
-        alert('Failed to update bookmark');
+        toast.error('Gagal memperbarui hanca');
       }
     });
   };
@@ -88,10 +90,11 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId, chaptersData 
           surah_number: chapterId,
           verse_number: verseNumber,
         });
+        toast.success('Hanca berhasil dibuat');
         onClose();
       } catch (error) {
         console.error(error);
-        alert('Failed to create bookmark');
+        toast.error('Gagal membuat hanca');
       }
     });
   };

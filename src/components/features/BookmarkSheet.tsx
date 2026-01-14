@@ -13,11 +13,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Verse } from '@/hooks/useQuran';
+import { ChapterResponse, Verse } from '@/hooks/useQuran';
 import { addBookmark, getBookmarks, updateBookmark } from '@/actions/bookmarks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Plus, BookOpen } from 'lucide-react';
+import { getChapterName } from '@/lib/utils';
 
 interface Bookmark {
   id: string;
@@ -31,11 +32,12 @@ interface BookmarkSheetProps {
   isOpen: boolean;
   onClose: () => void;
   chapterId: number;
+  chaptersData?: ChapterResponse 
 }
 
 type SheetView = 'list' | 'confirm' | 'new';
 
-export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkSheetProps) {
+export function BookmarkSheet({ verse, isOpen, onClose, chapterId, chaptersData }: BookmarkSheetProps) {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [view, setView] = useState<SheetView>('list');
   const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | null>(null);
@@ -102,7 +104,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
             <SheetHeader className="bg-primary px-4 ">
               <SheetTitle className="text-background bg-primary">Perbaharui Hanca</SheetTitle>
               <SheetDescription className="text-background bg-primary">
-                Pilih hanca untuk {verse?.verse_key}
+                Pilih hanca untuk QS. {getChapterName(chapterId, chaptersData)} ayat {verseNumber}
               </SheetDescription>
             </SheetHeader>
             <div className="space-y-2 px-4">
@@ -123,7 +125,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
                 </>
               ) : bookmarks.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Tidak ada hanca. Buat hanca pertama!
+                  Tidak ada hanca. Yuk buat hanca pertama!
                 </p>
               ) : (
                 bookmarks.map((bookmark) => (
@@ -137,7 +139,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
                       <div className="flex-1">
                         <div className="font-medium text-sm">{bookmark.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          Surah {bookmark.surah_number}: {bookmark.verse_number}
+                          QS. {getChapterName(bookmark.surah_number, chaptersData)} ayat {bookmark.verse_number}
                         </div>
                       </div>
                     </CardContent>
@@ -166,7 +168,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <span className="text-sm text-muted-foreground">Sebelumnya</span>
                 <span className="font-medium">
-                  Surah {selectedBookmark.surah_number}, Ayat {selectedBookmark.verse_number}
+                  QS. {getChapterName(selectedBookmark.surah_number, chaptersData)} ayat {selectedBookmark.verse_number}
                 </span>
               </div>
               <div className="flex justify-center">
@@ -175,7 +177,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
               <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <span className="text-sm text-muted-foreground">Baru</span>
                 <span className="font-medium text-primary">
-                  Surah {chapterId}, Ayat {verseNumber}
+                  QS. {getChapterName(chapterId, chaptersData)} ayat {verseNumber}
                 </span>
               </div>
             </div>
@@ -196,7 +198,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
             <SheetHeader className="bg-primary px-4 ">
               <SheetTitle className="text-background bg-primary">Hanca Baru</SheetTitle>
               <SheetDescription className="text-background bg-primary">
-                Buat hanca baru untuk {verse?.verse_key}</SheetDescription>
+                Buat hanca baru untuk QS. {getChapterName(chapterId, chaptersData)} ayat {verseNumber}</SheetDescription>
             </SheetHeader>
             <div className="py-4 px-4">
               <div className="">
@@ -206,6 +208,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
                 <Input
                   id="name"
                   value={newName}
+                  placeholder="Masukkan nama hanca..."
                   onChange={(e) => setNewName(e.target.value)}
                   className="col-span-3"
                 />

@@ -12,6 +12,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useChapters } from '@/hooks/useQuran';
+import { getChapterName } from '@/lib/utils';
 import { Pencil, Trash2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -29,6 +31,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
   const router = useRouter();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [editName, setEditName] = useState('');
+  const { data: chaptersData } = useChapters();
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -107,7 +110,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Surah {b.surah_number}, Verse {b.verse_number}
+                  QS. {getChapterName(b.surah_number, chaptersData)} ayat {b.verse_number}
                 </p>
                 {b.groupCount !== undefined && b.groupCount > 0 && (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -129,11 +132,13 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
             <DialogTitle>Ubah Nama Hanca</DialogTitle>
             <DialogDescription>Masukkan nama hanca baru</DialogDescription>
           </DialogHeader>
-          <Input
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            placeholder="Nama hanca"
-          />
+          <div className="px-4">
+            <Input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Nama hanca"
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingBookmark(null)}>
               Batal

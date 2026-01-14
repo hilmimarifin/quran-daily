@@ -15,6 +15,8 @@ import {
 import { BookOpen, LogOut } from 'lucide-react';
 import { setActiveBookmarkForGroup, leaveGroup } from '@/actions/groups';
 import { useRouter } from 'next/navigation';
+import { getChapterName } from '@/lib/utils';
+import { useChapters } from '@/hooks/useQuran';
 
 interface Member {
   id: string;
@@ -58,6 +60,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
   const [isPending, startTransition] = useTransition();
   const [isBookmarkDialogOpen, setIsBookmarkDialogOpen] = useState(false);
   const isAdmin = group.currentUserRole === 'admin';
+  const { data: chaptersData } = useChapters();
 
   // Find current user's membership
   const currentUserMember = group.members.find((m) => m.user_id === group.currentUserId);
@@ -138,7 +141,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
             <div className="flex-1">
               <div className="text-sm font-medium">Hanca yang dipakai:</div>
               <div className="text-xs text-muted-foreground">
-                {currentUserMember.bookmark.name} - S{currentUserMember.bookmark.surah_number}:V
+                {currentUserMember.bookmark.name} - Qs.{getChapterName(currentUserMember.bookmark.surah_number, chaptersData)} Ayat
                 {currentUserMember.bookmark.verse_number}
               </div>
             </div>
@@ -250,15 +253,15 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
       <Dialog open={isBookmarkDialogOpen} onOpenChange={setIsBookmarkDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Select Active Bookmark</DialogTitle>
+            <DialogTitle>Pilih Hanca</DialogTitle>
             <DialogDescription>
-              Choose which bookmark to use for tracking progress in this group.
+              Pilih hanca yang akan digunakan untuk grup ini.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 px-4 space-y-2 max-h-60 overflow-y-auto">
             {bookmarks.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No bookmarks available. Create one first!
+                Tidak ada hanca yang tersedia. Yuk buat hanca terlebih dahulu!
               </p>
             ) : (
               bookmarks.map((b) => (
@@ -274,7 +277,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
                     <div className="flex-1">
                       <div className="font-medium text-sm">{b.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        S{b.surah_number}:V{b.verse_number}
+                        QS. {getChapterName(b.surah_number, chaptersData)} ayat {b.verse_number}
                       </div>
                     </div>
                   </CardContent>

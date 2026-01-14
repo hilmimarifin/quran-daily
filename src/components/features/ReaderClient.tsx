@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { BookOpen, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BookmarkSheet } from '@/components/features/BookmarkSheet';
+import { getChapterName } from '@/lib/utils';
 
 // Loading skeleton component for verses
 function VerseSkeleton() {
@@ -123,7 +124,7 @@ export function ReaderClient() {
             <div>
               <div className="text-sm font-medium">{bookmarkName}</div>
               <div className="text-xs text-muted-foreground">
-                Surah {chapterId}, Verse {targetVerseNumber}
+                QS. {getChapterName(chapterId, chaptersData)} ayat {targetVerseNumber}
               </div>
             </div>
           </div>
@@ -145,7 +146,6 @@ export function ReaderClient() {
           </div>
           <div className="flex gap-2">
             <Button
-              variant="outline"
               size="sm"
               onClick={() => handleChapterChange(Math.max(1, chapterId - 1))}
               disabled={chapterId <= 1}
@@ -153,7 +153,6 @@ export function ReaderClient() {
               Prev
             </Button>
             <Button
-              variant="outline"
               size="sm"
               onClick={() => handleChapterChange(Math.min(114, chapterId + 1))}
               disabled={chapterId >= 114}
@@ -217,6 +216,7 @@ export function ReaderClient() {
       )}
 
       <BookmarkSheet
+        chaptersData={chaptersData}
         key={isSheetOpen ? 'open' : 'closed'}
         verse={selectedVerse}
         isOpen={isSheetOpen}

@@ -101,7 +101,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
         <div>
           <h1 className="text-2xl font-bold">{group.name}</h1>
           <p className="text-muted-foreground text-sm">
-            {group.members.length} Members • {isAdmin ? 'Admin' : 'Member'}
+            {group.members.length} Anggota • {isAdmin ? 'Admin' : 'Member'}
           </p>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-xs text-muted-foreground">ID: {group.id.slice(0, 8)}...</span>
@@ -136,7 +136,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
           <CardContent className="p-3 flex items-center gap-3">
             <BookOpen className="h-5 w-5 text-primary" />
             <div className="flex-1">
-              <div className="text-sm font-medium">Your Active Bookmark</div>
+              <div className="text-sm font-medium">Hanca yang dipakai:</div>
               <div className="text-xs text-muted-foreground">
                 {currentUserMember.bookmark.name} - S{currentUserMember.bookmark.surah_number}:V
                 {currentUserMember.bookmark.verse_number}
@@ -255,7 +255,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
               Choose which bookmark to use for tracking progress in this group.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 px-2 space-y-2 max-h-60 overflow-y-auto">
+          <div className="py-4 px-4 space-y-2 max-h-60 overflow-y-auto">
             {bookmarks.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 No bookmarks available. Create one first!

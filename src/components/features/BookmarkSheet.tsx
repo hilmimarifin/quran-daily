@@ -39,7 +39,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [view, setView] = useState<SheetView>('list');
   const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | null>(null);
-  const [newName, setNewName] = useState('Daily Reading');
+  const [newName, setNewName] = useState('');
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -96,14 +96,16 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh] overflow-y-auto px-2">
+      <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh] overflow-y-auto px-0">
         {view === 'list' && (
           <>
-            <SheetHeader className="">
-              <SheetTitle>Perbaharui Hanca</SheetTitle>
-              <SheetDescription>Pilih hanca untuk {verse?.verse_key}</SheetDescription>
+            <SheetHeader className="bg-primary px-4 ">
+              <SheetTitle className="text-background bg-primary">Perbaharui Hanca</SheetTitle>
+              <SheetDescription className="text-background bg-primary">
+                Pilih hanca untuk {verse?.verse_key}
+              </SheetDescription>
             </SheetHeader>
-            <div className="space-y-2">
+            <div className="space-y-2 px-4">
               {isLoading ? (
                 // Loading skeletons
                 <>
@@ -144,7 +146,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
               )}
             </div>
             <SheetFooter>
-              <Button variant="outline" onClick={() => setView('new')} className="w-full">
+              <Button onClick={() => setView('new')} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Buat Hanca Baru
               </Button>
@@ -154,32 +156,32 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
 
         {view === 'confirm' && selectedBookmark && (
           <>
-            <SheetHeader>
-              <SheetTitle>Confirm Update</SheetTitle>
-              <SheetDescription>
-                Update `${selectedBookmark.name}` to the new position?
+            <SheetHeader className="bg-primary px-4 ">
+              <SheetTitle className="text-background bg-primary">Konfirmasi pembaruan</SheetTitle>
+              <SheetDescription className="text-background bg-primary">
+                Perbarui hanca `{selectedBookmark.name}` ke ayat baru?
               </SheetDescription>
             </SheetHeader>
             <div className="py-4 space-y-3">
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                <span className="text-sm text-muted-foreground">Previous</span>
+                <span className="text-sm text-muted-foreground">Sebelumnya</span>
                 <span className="font-medium">
-                  Surah {selectedBookmark.surah_number}, Verse {selectedBookmark.verse_number}
+                  Surah {selectedBookmark.surah_number}, Ayat {selectedBookmark.verse_number}
                 </span>
               </div>
               <div className="flex justify-center">
                 <span className="text-muted-foreground">↓</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
-                <span className="text-sm text-muted-foreground">New</span>
+                <span className="text-sm text-muted-foreground">Baru</span>
                 <span className="font-medium text-primary">
-                  Surah {chapterId}, Verse {verseNumber}
+                  Surah {chapterId}, Ayat {verseNumber}
                 </span>
               </div>
             </div>
             <SheetFooter className="flex gap-2">
               <Button variant="outline" onClick={() => setView('list')} className="flex-1">
-                Back
+                Kembali
               </Button>
               <Button onClick={handleConfirmUpdate} disabled={isPending} className="flex-1">
                 <Check className="h-4 w-4 mr-2" />
@@ -191,9 +193,10 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
 
         {view === 'new' && (
           <>
-            <SheetHeader>
-              <SheetTitle>Hanca Baru</SheetTitle>
-              <SheetDescription>Buat hanca baru untuk {verse?.verse_key}</SheetDescription>
+            <SheetHeader className="bg-primary px-4 ">
+              <SheetTitle className="text-background bg-primary">Hanca Baru</SheetTitle>
+              <SheetDescription className="text-background bg-primary">
+                Buat hanca baru untuk {verse?.verse_key}</SheetDescription>
             </SheetHeader>
             <div className="py-4 px-4">
               <div className="">
@@ -212,7 +215,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId }: BookmarkShe
               <Button variant="outline" onClick={() => setView('list')} className="flex-1">
                 Kembali
               </Button>
-              <Button onClick={handleCreateNew} disabled={isPending} className="flex-1">
+              <Button onClick={handleCreateNew} disabled={isPending || !newName} className="flex-1">
                 {isPending ? 'Membuat...' : 'Buat'}
               </Button>
             </SheetFooter>

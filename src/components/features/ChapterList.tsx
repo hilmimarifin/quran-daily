@@ -48,12 +48,13 @@ const ChapterList = () => {
         {filteredChapters?.map((chapter) => (
           <Card
             key={chapter.id}
-            className="cursor-pointer hover:bg-muted/50 transition-colors"
+            className="cursor-pointer hover:bg-muted/50 transition-colors border-r-4 border-r-primary"
             onClick={() => handleNavigate(chapter.id)}
           >
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-medium">
-                {chapter.id}. {chapter.name_simple}
+              <CardTitle className="text-base font-medium flex flex-row justify-between w-full">
+                <span>{chapter.id}. {chapter.name_simple}</span>
+                <span>{chapter.name_arabic}</span>
               </CardTitle>
             </CardHeader>
             <CardContent></CardContent>

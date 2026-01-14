@@ -73,7 +73,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
             <DialogHeader>
               <DialogTitle>Buat Grup Baru</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
+            <div className="p-4">
               <Input
                 placeholder="Nama Grup"
                 value={newGroupName}
@@ -98,7 +98,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
             <DialogHeader>
               <DialogTitle>Bergabung dengan Grup</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
+            <div className="p-4">
               <Input
                 placeholder="ID Grup"
                 value={joinGroupId}

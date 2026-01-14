@@ -21,7 +21,12 @@ export const getGroups = cache(async () => {
   if (!user) return [];
 
   const members = await prisma.groupMember.findMany({
-    where: { user_id: user.id },
+    where: { 
+      user_id: user.id,
+      group: {
+        deleted_at: null, // Filter out soft-deleted groups
+      },
+    },
     include: {
       group: {
         include: {
@@ -65,6 +70,15 @@ export async function joinGroup(groupId: string) {
   const user = await getUser();
   if (!user) throw new Error('Unauthorized');
 
+  // Check if group exists and is not deleted
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+  });
+
+  if (!group || group.deleted_at) {
+    throw new Error('Group not found');
+  }
+
   // Check if already member
   const existing = await prisma.groupMember.findUnique({
     where: {
@@ -106,7 +120,10 @@ export async function getGroupDetails(groupId: string) {
   if (!membership) return null;
 
   const group = await prisma.group.findUnique({
-    where: { id: groupId },
+    where: { 
+      id: groupId,
+      deleted_at: null, // Filter out soft-deleted groups
+    },
     include: {
       members: {
         include: {
@@ -195,3 +212,33 @@ export async function leaveGroup(groupId: string) {
 
   revalidatePath('/groups');
 }
+
+export async function deleteGroup(groupId: string) {
+  const user = await getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  // Verify user is admin of this group
+  const membership = await prisma.groupMember.findUnique({
+    where: {
+      group_id_user_id: {
+        group_id: groupId,
+        user_id: user.id,
+      },
+    },
+  });
+
+  if (!membership || membership.role !== 'admin') {
+    throw new Error('Only admin can delete the group');
+  }
+
+  // Soft delete the group
+  await prisma.group.update({
+    where: { id: groupId },
+    data: {
+      deleted_at: new Date(),
+    },
+  });
+
+  revalidatePath('/groups');
+}
+

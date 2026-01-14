@@ -12,8 +12,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { BookOpen, LogOut } from 'lucide-react';
-import { setActiveBookmarkForGroup, leaveGroup } from '@/actions/groups';
+import { BookOpen, LogOut, Trash2 } from 'lucide-react';
+import { setActiveBookmarkForGroup, leaveGroup, deleteGroup } from '@/actions/groups';
 import { useRouter } from 'next/navigation';
 import { getChapterName } from '@/lib/utils';
 import { useChapters } from '@/hooks/useQuran';
@@ -101,6 +101,21 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
     });
   };
 
+  const handleDeleteGroup = () => {
+    if (!confirm('Anda yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan.')) return;
+
+    startTransition(async () => {
+      try {
+        await deleteGroup(group.id);
+        toast.success('Grup berhasil dihapus');
+        router.push('/groups');
+      } catch (error) {
+        console.error(error);
+        toast.error('Gagal menghapus grup');
+      }
+    });
+  };
+
   return (
     <div className="container max-w-md mx-auto p-4 space-y-6 pb-24">
       <header className="py-2 flex items-center justify-between">
@@ -128,6 +143,17 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
           <Button variant="outline" size="icon" onClick={() => setIsBookmarkDialogOpen(true)}>
             <BookOpen className="h-4 w-4" />
           </Button>
+          {isAdmin && (
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleDeleteGroup} 
+              disabled={isPending}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
           {!isAdmin && (
             <Button variant="outline" size="icon" onClick={handleLeaveGroup} disabled={isPending}>
               <LogOut className="h-4 w-4" />

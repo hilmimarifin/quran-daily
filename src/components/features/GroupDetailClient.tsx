@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { BookOpen, LogOut, Trash2 } from 'lucide-react';
-import { setActiveBookmarkForGroup, leaveGroup, deleteGroup } from '@/actions/groups';
+import { setActiveBookmarkForGroup, leaveGroup, deleteGroup } from '@/lib/api/groups';
 import { useRouter } from 'next/navigation';
 import { getChapterName } from '@/lib/utils';
 import { useChapters } from '@/hooks/useQuran';
@@ -79,6 +79,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
         await setActiveBookmarkForGroup(group.id, bookmarkId);
         toast.success('Hanca berhasil dipilih');
         setIsBookmarkDialogOpen(false);
+        router.refresh();
       } catch (error) {
         console.error(error);
         toast.error('Gagal mengatur hanca');
@@ -244,7 +245,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
       </section>
 
       {/* All Members (Admin only) */}
-      {isAdmin && (
+      {/* {isAdmin && ( */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">All Members</h2>
           <div className="space-y-2">
@@ -276,7 +277,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
             ))}
           </div>
         </section>
-      )}
+      {/* )} */}
 
       {/* Set Bookmark Dialog */}
       <Dialog open={isBookmarkDialogOpen} onOpenChange={setIsBookmarkDialogOpen}>

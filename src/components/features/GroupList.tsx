@@ -13,8 +13,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Plus, Users, Search } from 'lucide-react';
-import { createGroup, joinGroup } from '@/actions/groups';
+import { createGroup, joinGroup } from '@/lib/api/groups';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 interface Group {
@@ -30,6 +31,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
   const [joinGroupId, setJoinGroupId] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
+  const router = useRouter();
 
   const handleCreate = () => {
     if (!newGroupName.trim()) return;
@@ -40,6 +42,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
         toast.success('Grup berhasil dibuat');
         setIsCreateOpen(false);
         setNewGroupName('');
+        router.refresh();
       } catch (error) {
         console.error(error);
         toast.error('Gagal membuat grup');
@@ -56,6 +59,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
         toast.success('Berhasil bergabung dengan grup');
         setIsJoinOpen(false);
         setJoinGroupId('');
+        router.refresh();
       } catch (error) {
         console.error(error);
         toast.error('Gagal bergabung dengan grup (ID tidak valid)');

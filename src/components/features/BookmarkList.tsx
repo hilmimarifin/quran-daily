@@ -1,6 +1,6 @@
 'use client';
 
-import { deleteBookmark, renameBookmark } from '@/actions/bookmarks';
+import { deleteBookmark, renameBookmark } from '@/lib/api/bookmarks';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -42,6 +42,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
       try {
         await deleteBookmark(id);
         toast.success('Hanca berhasil dihapus');
+        router.refresh();
       } catch (error) {
         console.error(error);
         toast.error('Gagal menghapus hanca');
@@ -63,6 +64,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
         await renameBookmark(editingBookmark.id, editName);
         toast.success('Nama hanca berhasil diubah');
         setEditingBookmark(null);
+        router.refresh();
       } catch (error) {
         console.error(error);
         toast.error('Gagal mengubah nama hanca');
@@ -84,7 +86,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
         {bookmarks.map((b) => (
           <Card
             key={b.id}
-            className="cursor-pointer hover:bg-muted/50 transition-colors p-3 "
+            className="cursor-pointer hover:bg-muted/50 transition-colors p-3 border-l-4 border-l-primary"
             onClick={() => handleNavigate(b)}
           >
             <div className="flex flex-col space-y-0">

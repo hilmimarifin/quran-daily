@@ -13,7 +13,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { updateProfile } from '@/actions/profile';
+import { updateProfile } from '@/lib/api/profile';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 

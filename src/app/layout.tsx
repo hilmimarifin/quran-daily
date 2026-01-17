@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Quran Reader',
-  description: 'Track your Quran reading progress',
+  title: 'HancaQu',
+  description: 'Teman baca dan catat progres Al-Quran kamu',
 };
 
 export default function RootLayout({

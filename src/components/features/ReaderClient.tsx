@@ -142,13 +142,13 @@ export function ReaderClient() {
   // Fetch Indonesian translations when toggle is enabled
   useEffect(() => {
     if (!showTranslation) return;
-    
+
     const fetchTranslations = async () => {
       setIsLoadingTranslation(true);
       try {
         const response = await fetch(`https://equran.id/api/v2/surat/${chapterId}`);
         const data = await response.json();
-        
+
         if (data.code === 200 && data.data?.ayat) {
           const translationMap: TranslationData = {};
           data.data.ayat.forEach((ayat: TranslationVerse) => {
@@ -274,21 +274,36 @@ export function ReaderClient() {
                   <p className="text-right text-2xl font-serif leading-loose" dir="rtl">
                     {verse.text_uthmani}
                   </p>
-                  {showTranslation && (
-                    isLoadingTranslation ? (
+                  {showTranslation &&
+                    (isLoadingTranslation ? (
                       <TranslationSkeleton />
                     ) : translations[verseNumber] ? (
-                      <p className="mt-3 pt-3 border-t border-border/50 text-sm text-muted-foreground leading-relaxed">
+                      <p className="m-3 pt-3 border-t border-border/50 text-sm text-muted-foreground leading-relaxed">
                         {translations[verseNumber]}
                       </p>
-                    ) : null
-                  )}
+                    ) : null)}
                 </CardContent>
               </Card>
             );
           })}
         </div>
       )}
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          onClick={() => handleChapterChange(Math.max(1, chapterId - 1))}
+          disabled={chapterId <= 1}
+        >
+          Prev
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => handleChapterChange(Math.min(114, chapterId + 1))}
+          disabled={chapterId >= 114}
+        >
+          Next
+        </Button>
+      </div>
 
       <BookmarkSheet
         chaptersData={chaptersData}

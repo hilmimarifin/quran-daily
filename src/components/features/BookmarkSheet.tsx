@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChapterResponse, Verse } from '@/hooks/useQuran';
-import { addBookmark, getBookmarks, updateBookmark } from '@/actions/bookmarks';
+import { createBookmark, fetchBookmarks, updateBookmark } from '@/lib/api/bookmarks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Plus, BookOpen } from 'lucide-react';
@@ -51,8 +51,12 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId, chaptersData 
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      getBookmarks()
+      fetchBookmarks()
         .then(setBookmarks)
+        .catch((error) => {
+          console.error(error);
+          toast.error('Gagal memuat daftar hanca');
+        })
         .finally(() => setIsLoading(false));
     }
   }, [isOpen]);
@@ -85,7 +89,7 @@ export function BookmarkSheet({ verse, isOpen, onClose, chapterId, chaptersData 
 
     startTransition(async () => {
       try {
-        await addBookmark({
+        await createBookmark({
           name: newName,
           surah_number: chapterId,
           verse_number: verseNumber,

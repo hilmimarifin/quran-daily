@@ -6,10 +6,20 @@ import { useQuran, useChapters, Verse } from '@/hooks/useQuran';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Search, X } from 'lucide-react';
+import { BookOpen, Search, X, Languages } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BookmarkSheet } from '@/components/features/BookmarkSheet';
 import { getChapterName } from '@/lib/utils';
+
+// Type for translation data from eQuran API
+interface TranslationVerse {
+  nomorAyat: number;
+  teksIndonesia: string;
+}
+
+interface TranslationData {
+  [verseNumber: number]: string;
+}
 
 // Loading skeleton component for verses
 function VerseSkeleton() {
@@ -25,6 +35,16 @@ function VerseSkeleton() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// Translation loading skeleton
+function TranslationSkeleton() {
+  return (
+    <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-4/5" />
+    </div>
   );
 }
 
@@ -60,6 +80,11 @@ export function ReaderClient() {
 
   const [searchVerse, setSearchVerse] = useState('');
   const targetVerseRef = useRef<HTMLDivElement>(null);
+
+  // Translation state
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translations, setTranslations] = useState<TranslationData>({});
+  const [isLoadingTranslation, setIsLoadingTranslation] = useState(false);
 
   const handleSearchVerse = () => {
     const verseNum = parseInt(searchVerse);
@@ -110,6 +135,39 @@ export function ReaderClient() {
   const handleChapterChange = (newChapterId: number) => {
     setChapterId(newChapterId);
     setHasScrolledToTarget(false);
+    // Reset translations when chapter changes
+    setTranslations({});
+  };
+
+  // Fetch Indonesian translations when toggle is enabled
+  useEffect(() => {
+    if (!showTranslation) return;
+    
+    const fetchTranslations = async () => {
+      setIsLoadingTranslation(true);
+      try {
+        const response = await fetch(`https://equran.id/api/v2/surat/${chapterId}`);
+        const data = await response.json();
+        
+        if (data.code === 200 && data.data?.ayat) {
+          const translationMap: TranslationData = {};
+          data.data.ayat.forEach((ayat: TranslationVerse) => {
+            translationMap[ayat.nomorAyat] = ayat.teksIndonesia;
+          });
+          setTranslations(translationMap);
+        }
+      } catch (error) {
+        console.error('Failed to fetch translations:', error);
+      } finally {
+        setIsLoadingTranslation(false);
+      }
+    };
+
+    fetchTranslations();
+  }, [showTranslation, chapterId]);
+
+  const handleToggleTranslation = () => {
+    setShowTranslation((prev) => !prev);
   };
 
   const showLoading = isLoading || !chaptersData;
@@ -174,6 +232,14 @@ export function ReaderClient() {
           <Button size="icon" onClick={handleSearchVerse}>
             <Search className="h-4 w-4" />
           </Button>
+          <Button
+            size="icon"
+            variant={showTranslation ? 'default' : 'outline'}
+            onClick={handleToggleTranslation}
+            title="Tampilkan terjemahan"
+          >
+            <Languages className="h-4 w-4" />
+          </Button>
         </div>
       </header>
 
@@ -208,6 +274,15 @@ export function ReaderClient() {
                   <p className="text-right text-2xl font-serif leading-loose" dir="rtl">
                     {verse.text_uthmani}
                   </p>
+                  {showTranslation && (
+                    isLoadingTranslation ? (
+                      <TranslationSkeleton />
+                    ) : translations[verseNumber] ? (
+                      <p className="mt-3 pt-3 border-t border-border/50 text-sm text-muted-foreground leading-relaxed">
+                        {translations[verseNumber]}
+                      </p>
+                    ) : null
+                  )}
                 </CardContent>
               </Card>
             );

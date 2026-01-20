@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   DropdownMenu,
@@ -33,7 +34,16 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 items-center justify-between px-4 max-w-md mx-auto">
-        <Link href="/" className="font-bold text-xl tracking-tight">
+        <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary">
+            <Image
+              src="/logo/logo4.png"
+              alt="HancaQu Logo"
+              width={100}
+              height={100}
+              className="rounded-full object-cover"
+            />
+          </div>
           HancaQu
         </Link>
 

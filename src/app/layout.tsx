@@ -19,6 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'HancaQu',
   description: 'Teman baca dan catat progres Al-Quran kamu',
+  icons: {
+    icon: '/logo/logo4.png',
+    shortcut: '/logo/logo4.png',
+    apple: '/logo/logo4.png',
+  },
 };
 
 export default function RootLayout({

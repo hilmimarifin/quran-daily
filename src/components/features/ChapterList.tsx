@@ -58,7 +58,7 @@ const ChapterList = () => {
                   <span className="mr-2">{chapter.nomor}.</span>
                   <div className="flex flex-col">
                     <span>{chapter.namaLatin}</span>
-                    <span className='text-xs text-gray-500'>{chapter.arti} ayat</span>
+                    <span className="text-xs text-gray-500">{chapter.arti}</span>
                   </div>
                 </div>
                 <span>{chapter.nama}</span>

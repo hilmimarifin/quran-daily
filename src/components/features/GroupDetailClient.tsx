@@ -172,8 +172,8 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
             <div className="flex-1">
               <div className="text-sm font-medium">Hanca yang dipakai:</div>
               <div className="text-xs text-muted-foreground">
-                {currentUserMember.bookmark.name} - Qs.
-                {getChapterName(currentUserMember.bookmark.surah_number, chaptersData)} Ayat
+                {currentUserMember.bookmark.name} - QS.
+                {getChapterName(currentUserMember.bookmark.surah_number, chaptersData)} Ayat{' '}
                 {currentUserMember.bookmark.verse_number}
               </div>
             </div>

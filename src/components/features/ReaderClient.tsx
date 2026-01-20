@@ -10,6 +10,7 @@ import { BookOpen, Search, X, Languages } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BookmarkSheet } from '@/components/features/BookmarkSheet';
 import { getChapterName } from '@/lib/utils';
+import { useAuthStore } from '@/store/useAuthStore';
 
 // Type for translation data from eQuran API
 interface TranslationVerse {
@@ -51,6 +52,7 @@ function TranslationSkeleton() {
 export function ReaderClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuthStore();
 
   // Read initial values from URL params
   const initialSurah = searchParams.get('surah');
@@ -123,6 +125,9 @@ export function ReaderClient() {
   }, [allVerses.length, targetVerseNumber, hasScrolledToTarget]);
 
   const handleVerseClick = (verse: Verse) => {
+    if (!user) {
+      return;
+    }
     setSelectedVerse(verse);
     setIsSheetOpen(true);
   };

@@ -1,14 +1,15 @@
 'use client';
 import { useState } from 'react';
 
-import { useChapters } from '@/hooks/useQuran';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Input } from '../ui/input';
+import { useSurat } from '@/hooks/useQuran';
 import { Loader2, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
 
 const ChapterList = () => {
-  const { data, isLoading, error } = useChapters();
+  // const { data, isLoading, error } = useChapters();
+  const { data, isLoading, error } = useSurat();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -25,10 +26,10 @@ const ChapterList = () => {
     router.push(`/read/?surah=${surah}`);
   };
 
-  const filteredChapters = data?.chapters.filter(
+  const filteredChapters = data?.data.filter(
     (chapter) =>
-      chapter.name_simple.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chapter.id.toString().includes(searchQuery)
+      chapter.namaLatin.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      chapter.nomor.toString().includes(searchQuery)
   );
 
   return (
@@ -47,14 +48,20 @@ const ChapterList = () => {
       <div className="space-y-2">
         {filteredChapters?.map((chapter) => (
           <Card
-            key={chapter.id}
+            key={chapter.nomor}
             className="cursor-pointer hover:bg-muted/50 transition-colors border-r-4 border-r-primary"
-            onClick={() => handleNavigate(chapter.id)}
+            onClick={() => handleNavigate(chapter.nomor)}
           >
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base font-medium flex flex-row justify-between w-full">
-                <span>{chapter.id}. {chapter.name_simple}</span>
-                <span>{chapter.name_arabic}</span>
+                <div className="flex flex-row">
+                  <span className="mr-2">{chapter.nomor}.</span>
+                  <div className="flex flex-col">
+                    <span>{chapter.namaLatin}</span>
+                    <span className='text-xs text-gray-500'>{chapter.arti} ayat</span>
+                  </div>
+                </div>
+                <span>{chapter.nama}</span>
               </CardTitle>
             </CardHeader>
             <CardContent></CardContent>

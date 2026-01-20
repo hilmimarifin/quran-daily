@@ -129,7 +129,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
         ) : (
           groups.map((g) => (
             <Link key={g.id} href={`/groups/${g.id}`}>
-              <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <Card className="cursor-pointer hover:bg-muted/50 transition-colors mb-2">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-base font-medium">{g.name}</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />

@@ -39,6 +39,20 @@ export interface ChapterResponse {
   chapters: Chapter[];
 }
 
+export interface AyatResponse {
+  code: number;
+  message: string;
+  data: {
+    nomor: number;
+    nama: string;
+    namaLatin: string;
+    jumlahAyat: number;
+    tempatTurun: string;
+    arti: string;
+    deskripsi: string;
+  }[];
+}
+
 // Fetch all verses for a chapter in a single API call
 const fetchAllVerses = async (chapterId: number, versesCount: number) => {
   const { data } = await axios.get<QuranResponse>(
@@ -63,6 +77,11 @@ const fetchChapters = async () => {
   return data;
 };
 
+const fetchSurat = async () => {
+  const { data } = await axios.get<AyatResponse>(`https://equran.id/api/v2/surat`);
+  return data;
+};
+
 // Fetch all verses for a chapter using verses_count
 export const useQuran = (chapterId: number, versesCount: number) => {
   return useQuery({
@@ -76,6 +95,14 @@ export const useChapters = () => {
   return useQuery({
     queryKey: ['chapters'],
     queryFn: () => fetchChapters(),
+    staleTime: Infinity, // Chapters don't change, cache forever
+  });
+};
+
+export const useSurat = () => {
+  return useQuery({
+    queryKey: ['surat'],
+    queryFn: () => fetchSurat(),
     staleTime: Infinity, // Chapters don't change, cache forever
   });
 };

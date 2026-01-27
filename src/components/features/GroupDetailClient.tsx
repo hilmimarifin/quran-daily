@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { BookOpen, LogOut, Trash2, CircleAlert, Crown } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BookOpen, LogOut, Trash2, CircleAlert, Crown, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { setActiveBookmarkForGroup, leaveGroup, deleteGroup } from '@/lib/api/groups';
+import {
+  setActiveBookmarkForGroup,
+  leaveGroup,
+  deleteGroup,
+  fetchGroupRankings,
+  Ranking,
+} from '@/lib/api/groups';
 import { useRouter } from 'next/navigation';
 import { getChapterName } from '@/lib/utils';
 import { useChapters } from '@/hooks/useQuran';
@@ -64,16 +71,46 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isBookmarkDialogOpen, setIsBookmarkDialogOpen] = useState(false);
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState<'weekly' | 'monthly' | 'all'>('all');
+  const [rankings, setRankings] = useState<Ranking[]>([]);
+  const [isLoadingRankings, setIsLoadingRankings] = useState(false);
   const isAdmin = group.currentUserRole === 'admin';
   const { data: chaptersData } = useChapters();
 
+  // Fetch rankings when period changes
+  useEffect(() => {
+    const loadRankings = async () => {
+      setIsLoadingRankings(true);
+      try {
+        const data = await fetchGroupRankings(group.id, leaderboardPeriod);
+        setRankings(data);
+      } catch (error) {
+        console.error('Failed to fetch rankings:', error);
+        toast.error('Gagal memuat leaderboard');
+      } finally {
+        setIsLoadingRankings(false);
+      }
+    };
+    loadRankings();
+  }, [group.id, leaderboardPeriod]);
+
+  // Create a map of rankings by userId for quick lookup
+  const rankingsMap = new Map(rankings.map((r) => [r.userId, r]));
+
+  // Get members sorted by period-specific progress
+  const sortedMembers = [...group.members].sort((a, b) => {
+    const aProgress = rankingsMap.get(a.user_id)?.progress || 0;
+    const bProgress = rankingsMap.get(b.user_id)?.progress || 0;
+    return bProgress - aProgress;
+  });
+
   // Find current user's membership
-  const currentUserMember = group.members.find((m) => m.user_id === group.currentUserId);
-  const currentUserRank = group.members.findIndex((m) => m.user_id === group.currentUserId) + 1;
+  const currentUserMember = sortedMembers.find((m) => m.user_id === group.currentUserId);
+  const currentUserRank = sortedMembers.findIndex((m) => m.user_id === group.currentUserId) + 1;
 
   // For members: show top 3 + self (if not in top 3)
   // For admins: show all
-  const displayedMembers = isAdmin ? group.members : group.members.slice(0, 3);
+  const displayedMembers = isAdmin ? sortedMembers : sortedMembers.slice(0, 3);
 
   const showSelfRanking = !isAdmin && currentUserRank > 3 && currentUserMember;
 
@@ -202,68 +239,97 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
 
       {/* Leaderboard */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Leaderboard</h2>
-        <div className="grid gap-3">
-          {displayedMembers.map((member, index) => (
-            <Card
-              key={member.id}
-              className={`${index === 0 ? 'bg-yellow-50 border-2 border-yellow-500' : 'bg-card border-none'}`}
-            >
-              <CardContent className="p-4 flex items-center gap-4 ">
-                <div className="font-bold text-xl w-6 text-center text-muted-foreground">
-                  #{index + 1}
-                </div>
-                <Avatar>
-                  <AvatarImage src={member.profile?.avatar_url || undefined} />
-                  <AvatarFallback>{member.profile?.display_name?.[0] || 'U'}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="font-medium flex items-center gap-2">
-                    {member.profile?.display_name || 'Unknown User'}
-                    {member.user_id === group.currentUserId && (
-                      <span className="ml-2 text-xs text-primary">(You)</span>
-                    )}
-                    {index === 0 && <Crown className="h-5 w-5 text-yellow-500" />}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {member.progress > 0 ? `${member.progress} pts` : 'No progress yet'}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {/* Show self ranking if not in top 3 */}
-          {showSelfRanking && currentUserMember && (
-            <>
-              <div className="text-center text-muted-foreground text-sm py-2">• • •</div>
-              <Card className="border-none bg-card">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className="font-bold text-xl w-6 text-center text-muted-foreground">
-                    #{currentUserRank}
-                  </div>
-                  <Avatar>
-                    <AvatarImage src={currentUserMember.profile?.avatar_url || undefined} />
-                    <AvatarFallback>
-                      {currentUserMember.profile?.display_name?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="font-medium">
-                      {currentUserMember.profile?.display_name || 'Unknown User'}
-                      <span className="ml-2 text-xs text-primary">(You)</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {currentUserMember.bookmark
-                        ? `S${currentUserMember.bookmark.surah_number}:V${currentUserMember.bookmark.verse_number}`
-                        : 'No progress yet'}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Leaderboard</h2>
+          <Tabs
+            value={leaderboardPeriod}
+            onValueChange={(v) => setLeaderboardPeriod(v as 'weekly' | 'monthly' | 'all')}
+          >
+            <TabsList className="h-8">
+              <TabsTrigger value="weekly" className="text-xs px-2">
+                Minggu
+              </TabsTrigger>
+              <TabsTrigger value="monthly" className="text-xs px-2">
+                Bulan
+              </TabsTrigger>
+              <TabsTrigger value="all" className="text-xs px-2">
+                Semua
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
+
+        {isLoadingRankings ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {displayedMembers.map((member, index) => {
+              const memberRanking = rankingsMap.get(member.user_id);
+              const periodProgress = memberRanking?.progress || 0;
+              return (
+                <Card
+                  key={member.id}
+                  className={`${index === 0 && periodProgress > 0 ? 'bg-yellow-50 border-2 border-yellow-500' : 'bg-card border-none'}`}
+                >
+                  <CardContent className="p-4 flex items-center gap-4 ">
+                    <div className="font-bold text-xl w-6 text-center text-muted-foreground">
+                      #{index + 1}
+                    </div>
+                    <Avatar>
+                      <AvatarImage src={member.profile?.avatar_url || undefined} />
+                      <AvatarFallback>{member.profile?.display_name?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="font-medium flex items-center gap-2">
+                        {member.profile?.display_name || 'Unknown User'}
+                        {member.user_id === group.currentUserId && (
+                          <span className="ml-2 text-xs text-primary">(You)</span>
+                        )}
+                        {index === 0 && periodProgress > 0 && (
+                          <Crown className="h-5 w-5 text-yellow-500" />
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {periodProgress > 0 ? `${periodProgress} pts` : 'No progress yet'}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {/* Show self ranking if not in top 3 */}
+            {showSelfRanking && currentUserMember && (
+              <>
+                <div className="text-center text-muted-foreground text-sm py-2">• • •</div>
+                <Card className="border-none bg-card">
+                  <CardContent className="p-4 flex items-center gap-4">
+                    <div className="font-bold text-xl w-6 text-center text-muted-foreground">
+                      #{currentUserRank}
+                    </div>
+                    <Avatar>
+                      <AvatarImage src={currentUserMember.profile?.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {currentUserMember.profile?.display_name?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {currentUserMember.profile?.display_name || 'Unknown User'}
+                        <span className="ml-2 text-xs text-primary">(You)</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {rankingsMap.get(currentUserMember.user_id)?.progress || 0} pts
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
       </section>
 
       {/* All Members (Admin only) */}
@@ -291,35 +357,41 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
                     ({member.role})
                   </span>
                 </div>
-                {member.juz_number && member.verse_position_in_juz && member.total_verses_in_juz && (() => {
-                  const percentage = Math.round((member.verse_position_in_juz / member.total_verses_in_juz) * 100);
-                  const getProgressColor = (pct: number) => {
-                    if (pct < 25) return 'bg-gradient-to-r from-rose-500 to-orange-400';
-                    if (pct < 50) return 'bg-gradient-to-r from-orange-400 to-amber-400';
-                    if (pct < 75) return 'bg-gradient-to-r from-amber-400 to-emerald-400';
-                    return 'bg-gradient-to-r from-emerald-400 to-teal-500';
-                  };
-                  return (
-                    <div className="mt-1 space-y-0.5">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <span>Juz {member.juz_number}</span>
-                        <span className="ml-auto font-semibold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                          {percentage}%
-                        </span>
+                <div className="text-xs text-muted-foreground">
+                  {member.bookmark
+                    ? `QS. ${getChapterName(member.bookmark.surah_number, chaptersData)} ayat ${member.bookmark.verse_number}`
+                    : '-'}
+                </div>
+
+                {member.juz_number &&
+                  member.verse_position_in_juz &&
+                  member.total_verses_in_juz &&
+                  (() => {
+                    const percentage = Math.round(
+                      (member.verse_position_in_juz / member.total_verses_in_juz) * 100
+                    );
+                    const getProgressColor = (pct: number) => {
+                      if (pct < 25) return 'bg-gradient-to-r from-rose-500 to-orange-400';
+                      if (pct < 50) return 'bg-gradient-to-r from-orange-400 to-amber-400';
+                      if (pct < 75) return 'bg-gradient-to-r from-amber-400 to-emerald-400';
+                      return 'bg-gradient-to-r from-emerald-400 to-teal-500';
+                    };
+                    return (
+                      <div className="mt-1 space-y-0.5">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <span>Juz {member.juz_number}</span>
+                          <span className="ml-auto font-semibold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                            {percentage}%
+                          </span>
+                        </div>
+                        <Progress
+                          value={percentage}
+                          className="h-1 bg-muted/50"
+                          indicatorClassName={getProgressColor(percentage)}
+                        />
                       </div>
-                      <Progress 
-                        value={percentage} 
-                        className="h-1 bg-muted/50"
-                        indicatorClassName={getProgressColor(percentage)}
-                      />
-                    </div>
-                  );
-                })()}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {member.bookmark
-                  ? `S${member.bookmark.surah_number}:V${member.bookmark.verse_number}`
-                  : '-'}
+                    );
+                  })()}
               </div>
             </div>
           ))}

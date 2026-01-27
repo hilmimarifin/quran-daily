@@ -40,24 +40,26 @@ export async function createReadingLog(data: {
   return log;
 }
 
-export async function getGroupRankings(groupId: string, period: 'weekly' | 'monthly' = 'weekly') {
+export async function getGroupRankings(groupId: string, period: 'weekly' | 'monthly' | 'all' = 'weekly') {
   const user = await getUser();
   if (!user) return null;
 
-  const { periodStart, periodEnd } =
-    period === 'weekly'
-      ? { periodStart: getWeekStart(), periodEnd: getWeekEnd() }
-      : { periodStart: getMonthStart(), periodEnd: getMonthEnd() };
+  // Build date filter based on period
+  let dateFilter: { gte?: Date; lte?: Date } | undefined;
+  
+  if (period === 'weekly') {
+    dateFilter = { gte: getWeekStart(), lte: getWeekEnd() };
+  } else if (period === 'monthly') {
+    dateFilter = { gte: getMonthStart(), lte: getMonthEnd() };
+  }
+  // For 'all', we don't filter by date
 
   // Get all reading logs for this group in the period
   const logs = await prisma.readingLog.groupBy({
     by: ['user_id'],
     where: {
       group_id: groupId,
-      created_at: {
-        gte: periodStart,
-        lte: periodEnd,
-      },
+      ...(dateFilter && { created_at: dateFilter }),
     },
     _sum: {
       character_count: true,
@@ -69,9 +71,9 @@ export async function getGroupRankings(groupId: string, period: 'weekly' | 'mont
     },
   });
 
-  return logs.map((log) => ({
+  return logs.map((log, index) => ({
     userId: log.user_id,
-    rank: logs.indexOf(log) + 1,
+    rank: index + 1,
     progress: log._sum.character_count || 0,
   }));
 }

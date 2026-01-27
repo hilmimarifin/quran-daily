@@ -105,3 +105,17 @@ export async function setActiveBookmarkForGroup(
   });
   await handleResponse(response);
 }
+
+export interface Ranking {
+  userId: string;
+  rank: number;
+  progress: number;
+}
+
+export async function fetchGroupRankings(
+  groupId: string,
+  period: 'weekly' | 'monthly' | 'all' = 'weekly'
+): Promise<Ranking[]> {
+  const response = await fetch(`/api/groups/${groupId}/rankings?period=${period}`);
+  return handleResponse<Ranking[]>(response);
+}

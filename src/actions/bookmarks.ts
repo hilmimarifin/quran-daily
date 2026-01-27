@@ -5,14 +5,83 @@ import { getUser } from './auth';
 import { revalidatePath } from 'next/cache';
 import { cache } from 'react';
 
+// Types for Quran API responses
+interface VerseByKeyResponse {
+  verse: {
+    juz_number: number;
+    verse_key: string;
+  };
+}
+
+interface JuzResponse {
+  juz: {
+    verses_count: number;
+  };
+}
+
+interface VersesByJuzResponse {
+  verses: { verse_key: string }[];
+}
+
 export const getBookmarks = cache(async () => {
   const user = await getUser();
   if (!user) return [];
 
-  return await prisma.bookmark.findMany({
+  const bookmarks = await prisma.bookmark.findMany({
     where: { user_id: user.id },
     orderBy: { updated_at: 'desc' },
   });
+
+  // Fetch juz data for each bookmark
+  const bookmarksWithJuz = await Promise.all(
+    bookmarks.map(async (bookmark) => {
+      try {
+        const verseKey = `${bookmark.surah_number}:${bookmark.verse_number}`;
+        
+        // Get juz number for this verse
+        const verseResponse = await fetch(
+          `https://api.quran.com/api/v4/verses/by_key/${verseKey}`
+        );
+        const verseData: VerseByKeyResponse = await verseResponse.json();
+        const juzNumber = verseData.verse.juz_number;
+
+        // Get total verses count for this juz
+        const juzResponse = await fetch(
+          `https://api.quran.com/api/v4/juzs/${juzNumber}`
+        );
+        const juzData: JuzResponse = await juzResponse.json();
+        const totalVersesInJuz = juzData.juz.verses_count;
+
+        // Get all verses in this juz to find position
+        const versesResponse = await fetch(
+          `https://api.quran.com/api/v4/verses/by_juz/${juzNumber}?page=1&per_page=${totalVersesInJuz}`
+        );
+        const versesData: VersesByJuzResponse = await versesResponse.json();
+        
+        // Find the position of current verse in juz (1-indexed)
+        const versePositionInJuz = versesData.verses.findIndex(
+          (v) => v.verse_key === verseKey
+        ) + 1;
+
+        return {
+          ...bookmark,
+          juz_number: juzNumber,
+          verse_position_in_juz: versePositionInJuz,
+          total_verses_in_juz: totalVersesInJuz,
+        };
+      } catch (error) {
+        console.error(`Failed to fetch juz data for bookmark ${bookmark.id}:`, error);
+        return {
+          ...bookmark,
+          juz_number: undefined,
+          verse_position_in_juz: undefined,
+          total_verses_in_juz: undefined,
+        };
+      }
+    })
+  );
+
+  return bookmarksWithJuz;
 });
 
 export async function addBookmark(data: {

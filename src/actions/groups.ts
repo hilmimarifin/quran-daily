@@ -156,15 +156,70 @@ export async function getGroupDetails(groupId: string) {
     progressData.map((p) => [p.user_id, p._sum.character_count || 0])
   );
 
-  const membersWithProfile = group.members.map((m: GroupMember & { bookmark: Bookmark | null }) => {
-    const profile = profiles.find((p: Profile) => p.id === m.user_id);
-    const progress = progressMap.get(m.user_id) || 0;
-    return {
-      ...m,
-      profile,
-      progress, // Total progress for this member
-    };
-  });
+  // Fetch juz data for each member's bookmark
+  const membersWithProfile = await Promise.all(
+    group.members.map(async (m: GroupMember & { bookmark: Bookmark | null }) => {
+      const profile = profiles.find((p: Profile) => p.id === m.user_id);
+      const progress = progressMap.get(m.user_id) || 0;
+
+      // Fetch juz data if member has a bookmark
+      let juzData = {
+        juz_number: undefined as number | undefined,
+        verse_position_in_juz: undefined as number | undefined,
+        total_verses_in_juz: undefined as number | undefined,
+      };
+
+      if (m.bookmark) {
+        try {
+          const verseKey = `${m.bookmark.surah_number}:${m.bookmark.verse_number}`;
+          
+          // Get juz number for this verse
+          const verseResponse = await fetch(
+            `https://api.quran.com/api/v4/verses/by_key/${verseKey}`
+          );
+          const verseData = await verseResponse.json();
+          const juzNumber = verseData.verse?.juz_number;
+
+          if (juzNumber) {
+            // Get total verses count for this juz
+            const juzResponse = await fetch(
+              `https://api.quran.com/api/v4/juzs/${juzNumber}`
+            );
+            const juzInfo = await juzResponse.json();
+            const totalVersesInJuz = juzInfo.juz?.verses_count;
+
+            if (totalVersesInJuz) {
+              // Get all verses in this juz to find position
+              const versesResponse = await fetch(
+                `https://api.quran.com/api/v4/verses/by_juz/${juzNumber}?page=1&per_page=${totalVersesInJuz}`
+              );
+              const versesData = await versesResponse.json();
+              
+              // Find the position of current verse in juz (1-indexed)
+              const versePositionInJuz = versesData.verses?.findIndex(
+                (v: { verse_key: string }) => v.verse_key === verseKey
+              ) + 1;
+
+              juzData = {
+                juz_number: juzNumber,
+                verse_position_in_juz: versePositionInJuz > 0 ? versePositionInJuz : undefined,
+                total_verses_in_juz: totalVersesInJuz,
+              };
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to fetch juz data for member ${m.user_id}:`, error);
+        }
+      }
+
+      return {
+        ...m,
+        profile,
+        progress,
+        ...juzData,
+      };
+    })
+  );
 
   // Sort by progress (highest first)
   membersWithProfile.sort((a, b) => b.progress - a.progress);

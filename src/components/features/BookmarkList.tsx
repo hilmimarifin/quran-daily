@@ -14,7 +14,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { useChapters } from '@/hooks/useQuran';
 import { getChapterName } from '@/lib/utils';
-import { Pencil, Trash2, Users } from 'lucide-react';
+import { Pencil, Trash2, Users, BookOpen } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -25,6 +26,9 @@ interface Bookmark {
   surah_number: number;
   verse_number: number;
   groupCount?: number;
+  juz_number?: number;
+  verse_position_in_juz?: number;
+  total_verses_in_juz?: number;
 }
 
 export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
@@ -113,10 +117,43 @@ export function BookmarkList({ bookmarks }: { bookmarks: Bookmark[] }) {
                   </Button>
                 </div>
               </div>
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">
                   QS. {getChapterName(b.surah_number, chaptersData)} ayat {b.verse_number}
                 </p>
+                {b.juz_number && b.verse_position_in_juz && b.total_verses_in_juz && (() => {
+                  const percentage = Math.round((b.verse_position_in_juz / b.total_verses_in_juz) * 100);
+                  
+                  // Dynamic gradient based on progress
+                  const getProgressColor = (pct: number) => {
+                    if (pct < 25) return 'bg-gradient-to-r from-rose-500 to-orange-400';
+                    if (pct < 50) return 'bg-gradient-to-r from-orange-400 to-amber-400';
+                    if (pct < 75) return 'bg-gradient-to-r from-amber-400 to-emerald-400';
+                    return 'bg-gradient-to-r from-emerald-400 to-teal-500';
+                  };
+
+                  return (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <BookOpen className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-muted-foreground">Juz {b.juz_number}</span>
+                        <span className="ml-auto font-semibold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                          {percentage}%
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <Progress 
+                          value={percentage} 
+                          className="h-2 bg-muted/50"
+                          indicatorClassName={getProgressColor(percentage)}
+                        />
+                        <div 
+                          className="absolute inset-0 bg-linear-to-r from-white/20 to-transparent rounded-full pointer-events-none"
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
                 {b.groupCount !== undefined && b.groupCount > 0 && (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Users className="h-3 w-3" />

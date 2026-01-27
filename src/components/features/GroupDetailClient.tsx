@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { BookOpen, LogOut, Trash2, CircleAlert, Crown } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { setActiveBookmarkForGroup, leaveGroup, deleteGroup } from '@/lib/api/groups';
 import { useRouter } from 'next/navigation';
 import { getChapterName } from '@/lib/utils';
@@ -25,6 +26,9 @@ interface Member {
   role: string;
   current_bookmark_id: string | null;
   progress: number;
+  juz_number?: number;
+  verse_position_in_juz?: number;
+  total_verses_in_juz?: number;
   bookmark: {
     id: string;
     name: string;
@@ -278,13 +282,39 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
                   {member.profile?.display_name?.[0] || 'U'}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 text-sm">
-                <span className="font-medium">
-                  {member.profile?.display_name || 'Unknown User'}
-                </span>
-                <span className="ml-2 text-xs text-muted-foreground capitalize">
-                  ({member.role})
-                </span>
+              <div className="flex-1">
+                <div className="text-sm">
+                  <span className="font-medium">
+                    {member.profile?.display_name || 'Unknown User'}
+                  </span>
+                  <span className="ml-2 text-xs text-muted-foreground capitalize">
+                    ({member.role})
+                  </span>
+                </div>
+                {member.juz_number && member.verse_position_in_juz && member.total_verses_in_juz && (() => {
+                  const percentage = Math.round((member.verse_position_in_juz / member.total_verses_in_juz) * 100);
+                  const getProgressColor = (pct: number) => {
+                    if (pct < 25) return 'bg-gradient-to-r from-rose-500 to-orange-400';
+                    if (pct < 50) return 'bg-gradient-to-r from-orange-400 to-amber-400';
+                    if (pct < 75) return 'bg-gradient-to-r from-amber-400 to-emerald-400';
+                    return 'bg-gradient-to-r from-emerald-400 to-teal-500';
+                  };
+                  return (
+                    <div className="mt-1 space-y-0.5">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span>Juz {member.juz_number}</span>
+                        <span className="ml-auto font-semibold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                          {percentage}%
+                        </span>
+                      </div>
+                      <Progress 
+                        value={percentage} 
+                        className="h-1 bg-muted/50"
+                        indicatorClassName={getProgressColor(percentage)}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
               <div className="text-xs text-muted-foreground">
                 {member.bookmark

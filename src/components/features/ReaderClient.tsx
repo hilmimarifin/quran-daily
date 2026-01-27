@@ -277,7 +277,7 @@ export function ReaderClient() {
                     {verse.verse_number}
                   </span>
                   <p className="text-right text-2xl font-serif leading-loose" dir="rtl">
-                    {verse.text_uthmani}
+                    {verse.text_imlaei}
                   </p>
                   {showTranslation &&
                     (isLoadingTranslation ? (

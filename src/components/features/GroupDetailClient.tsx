@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, LogOut, Trash2, CircleAlert, Crown, Loader2 } from 'lucide-react';
+import { BookOpen, LogOut, Trash2, CircleAlert, Crown, Loader2, Share2, Copy } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import {
   setActiveBookmarkForGroup,
@@ -55,6 +55,7 @@ interface Member {
 interface Group {
   id: string;
   name: string;
+  group_code: string | null;
   members: Member[];
   currentUserRole: string;
   currentUserId: string;
@@ -167,20 +168,39 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
           <p className="text-muted-foreground text-sm">
             {group.members.length} Anggota • {isAdmin ? 'Admin' : 'Member'}
           </p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-muted-foreground">ID: {group.id.slice(0, 8)}...</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 text-xs px-2"
-              onClick={() => {
-                navigator.clipboard.writeText(group.id);
-                toast.success('ID Grup disalin!');
-              }}
-            >
-              Copy
-            </Button>
-          </div>
+          {group.group_code && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md">
+                <span className="text-sm font-mono font-semibold tracking-wider">
+                  {group.group_code}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(group.group_code!);
+                    toast.success('Kode grup disalin!');
+                  }}
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => {
+                  const shareUrl = `${window.location.origin}/groups/join/${group.group_code}`;
+                  navigator.clipboard.writeText(shareUrl);
+                  toast.success('Link undangan disalin!');
+                }}
+              >
+                <Share2 className="h-3 w-3" />
+                Bagikan
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           <Button size="icon" onClick={() => setIsBookmarkDialogOpen(true)}>

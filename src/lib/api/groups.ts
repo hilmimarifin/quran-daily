@@ -24,6 +24,7 @@ export interface Member {
 export interface Group {
   id: string;
   name: string;
+  group_code: string | null;
   role: string;
   memberCount: number;
 }
@@ -31,6 +32,7 @@ export interface Group {
 export interface GroupDetails {
   id: string;
   name: string;
+  group_code: string | null;
   members: Member[];
   currentUserRole: string;
   currentUserId: string;
@@ -78,6 +80,15 @@ export async function joinGroup(id: string): Promise<void> {
     method: 'POST',
   });
   await handleResponse(response);
+}
+
+export async function joinGroupByCode(code: string): Promise<{ groupId: string }> {
+  const response = await fetch('/api/groups/join-by-code', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  return handleResponse<{ groupId: string }>(response);
 }
 
 export async function leaveGroup(id: string): Promise<void> {

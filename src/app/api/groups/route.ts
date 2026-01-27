@@ -4,6 +4,32 @@ import { getUser } from '@/actions/auth';
 import { revalidatePath } from 'next/cache';
 import { Group, GroupMember } from '@prisma/client';
 
+// Generate a unique 5-character alphanumeric group code
+async function generateUniqueGroupCode(): Promise<string> {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  while (attempts < maxAttempts) {
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    // Check if code already exists
+    const existing = await prisma.group.findUnique({
+      where: { group_code: code },
+    });
+
+    if (!existing) {
+      return code;
+    }
+    attempts++;
+  }
+
+  throw new Error('Failed to generate unique group code');
+}
+
 type GroupWithCount = Group & {
   _count: {
     members: number;
@@ -71,9 +97,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
+    // Generate unique group code
+    const groupCode = await generateUniqueGroupCode();
+
     const group = await prisma.group.create({
       data: {
         name,
+        group_code: groupCode,
         created_by: user.id,
         members: {
           create: {

@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Plus, Users, Search } from 'lucide-react';
-import { createGroup, joinGroup } from '@/lib/api/groups';
+import { createGroup, joinGroupByCode } from '@/lib/api/groups';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -28,7 +28,7 @@ interface Group {
 export function GroupList({ groups }: { groups: Group[] }) {
   const [isPending, startTransition] = useTransition();
   const [newGroupName, setNewGroupName] = useState('');
-  const [joinGroupId, setJoinGroupId] = useState('');
+  const [joinGroupCode, setJoinGroupCode] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const router = useRouter();
@@ -51,18 +51,18 @@ export function GroupList({ groups }: { groups: Group[] }) {
   };
 
   const handleJoin = () => {
-    if (!joinGroupId.trim()) return;
+    if (!joinGroupCode.trim()) return;
 
     startTransition(async () => {
       try {
-        await joinGroup(joinGroupId);
+        const result = await joinGroupByCode(joinGroupCode);
         toast.success('Berhasil bergabung dengan grup');
         setIsJoinOpen(false);
-        setJoinGroupId('');
-        router.refresh();
+        setJoinGroupCode('');
+        router.push(`/groups/${result.groupId}`);
       } catch (error) {
         console.error(error);
-        toast.error('Gagal bergabung dengan grup (ID tidak valid)');
+        toast.error('Gagal bergabung dengan grup (Kode tidak valid)');
       }
     });
   };
@@ -107,9 +107,10 @@ export function GroupList({ groups }: { groups: Group[] }) {
             </DialogHeader>
             <div className="p-4">
               <Input
-                placeholder="ID Grup"
-                value={joinGroupId}
-                onChange={(e) => setJoinGroupId(e.target.value)}
+                placeholder="Kode Grup (5 karakter)"
+                value={joinGroupCode}
+                onChange={(e) => setJoinGroupCode(e.target.value.toUpperCase())}
+                maxLength={5}
               />
             </div>
             <DialogFooter>

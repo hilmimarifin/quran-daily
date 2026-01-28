@@ -1,6 +1,5 @@
 import { getBookmarks } from '@/actions/bookmarks';
 import { BookmarkList } from '@/components/features/BookmarkList';
-import { Button } from '@/components/ui/button';
 import { Bookmark } from 'lucide-react';
 
 export default async function BookmarksPage() {

@@ -17,6 +17,7 @@ import { createGroup, joinGroupByCode } from '@/lib/api/groups';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface Group {
   id: string;
@@ -132,19 +133,24 @@ export function GroupList({ groups }: { groups: Group[] }) {
             <Link key={g.id} href={`/groups/${g.id}`}>
               <Card className="cursor-pointer hover:bg-muted/50 transition-colors p-3 border-l-4 border-l-primary mb-2">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-base font-medium">{g.name}</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="h-12 w-12" >
+                      <AvatarImage src={undefined} />
+                      <AvatarFallback>{g.name?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <CardTitle className="text-base font-medium">{g.name}</CardTitle>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <p>{g.memberCount}</p>
+                  </div>
                 </CardHeader>
-                <CardContent>
+                {/* <CardContent>
                   <div className="flex justify-between items-end">
                     <div className="text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4" />
-                        <p>{g.memberCount}</p>
-                      </div>
                     </div>
                   </div>
-                </CardContent>
+                </CardContent> */}
               </Card>
             </Link>
           ))

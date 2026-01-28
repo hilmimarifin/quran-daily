@@ -13,7 +13,17 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, LogOut, Trash2, CircleAlert, Crown, Loader2, Share2, Copy } from 'lucide-react';
+import {
+  BookOpen,
+  LogOut,
+  Trash2,
+  CircleAlert,
+  Crown,
+  Loader2,
+  Share2,
+  Copy,
+  Users,
+} from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import {
   setActiveBookmarkForGroup,
@@ -26,6 +36,7 @@ import { useRouter } from 'next/navigation';
 import { getChapterName } from '@/lib/utils';
 import { useChapters } from '@/hooks/useQuran';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface Member {
   id: string;
@@ -77,6 +88,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
   const [isLoadingRankings, setIsLoadingRankings] = useState(false);
   const isAdmin = group.currentUserRole === 'admin';
   const { data: chaptersData } = useChapters();
+  const { user } = useAuthStore();
 
   // Fetch rankings when period changes
   useEffect(() => {
@@ -164,7 +176,10 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
     <div className="container max-w-md mx-auto p-4 space-y-6 pb-24">
       <header className="py-2 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{group.name}</h1>
+          <div className="flex items-center space-x-2">
+            <Users className="h-6 w-6" />
+            <h1 className="text-2xl font-bold">{group.name}</h1>
+          </div>
           <p className="text-muted-foreground text-sm">
             {group.members.length} Anggota • {isAdmin ? 'Admin' : 'Member'}
           </p>
@@ -330,7 +345,7 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
                       #{currentUserRank}
                     </div>
                     <Avatar>
-                      <AvatarImage src={currentUserMember.profile?.avatar_url || undefined} />
+                      <AvatarImage src={user?.user_metadata.avatar_url || undefined} />
                       <AvatarFallback>
                         {currentUserMember.profile?.display_name?.[0] || 'U'}
                       </AvatarFallback>

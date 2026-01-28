@@ -33,6 +33,7 @@ export const getUser = cache(async () => {
   });
 
   if (!profile) {
+    // Create profile with Google avatar on first login
     await prisma.profile.create({
       data: {
         id: user.id,

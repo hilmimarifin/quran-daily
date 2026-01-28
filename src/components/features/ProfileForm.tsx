@@ -31,14 +31,13 @@ export function ProfileForm({
   email: string | undefined;
 }) {
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const handleSave = () => {
     startTransition(async () => {
       try {
-        await updateProfile({ displayName, avatarUrl });
+        await updateProfile({ displayName });
         toast.success('Profil berhasil diperbarui!');
         router.refresh();
       } catch (error) {
@@ -57,20 +56,11 @@ export function ProfileForm({
       <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={avatarUrl} />
+            <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback className="text-lg">
               {displayName?.[0] || email?.[0] || 'U'}
             </AvatarFallback>
           </Avatar>
-          <div className="space-y-2 flex-1">
-            <Label htmlFor="avatar">Avatar URL</Label>
-            <Input
-              id="avatar"
-              placeholder="https://example.com/avatar.jpg"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-            />
-          </div>
         </div>
 
         <div className="space-y-2">

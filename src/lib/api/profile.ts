@@ -8,7 +8,6 @@ export interface Profile {
 
 export interface UpdateProfileData {
   displayName: string;
-  avatarUrl?: string;
 }
 
 class ApiError extends Error {

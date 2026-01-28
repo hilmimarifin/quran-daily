@@ -1,5 +1,6 @@
 import { getGroups } from '@/actions/groups';
 import { GroupList } from '@/components/features/GroupList';
+import { Users } from 'lucide-react';
 
 export default async function GroupsPage() {
   const groups = await getGroups();
@@ -7,7 +8,10 @@ export default async function GroupsPage() {
   return (
     <div className="container max-w-md mx-auto p-4 space-y-4 pb-24">
       <header className="flex items-center justify-between py-2">
-        <h1 className="text-2xl font-bold">Grup</h1>
+        <div className="flex items-center space-x-2">
+          <Users className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Grup</h1>
+        </div>
       </header>
       <GroupList groups={groups} />
     </div>

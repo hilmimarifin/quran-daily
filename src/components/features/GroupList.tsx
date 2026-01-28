@@ -12,7 +12,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Plus, Users, Search } from 'lucide-react';
+import { Plus, Users, Search, User } from 'lucide-react';
 import { createGroup, joinGroupByCode } from '@/lib/api/groups';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -130,7 +130,7 @@ export function GroupList({ groups }: { groups: Group[] }) {
         ) : (
           groups.map((g) => (
             <Link key={g.id} href={`/groups/${g.id}`}>
-              <Card className="cursor-pointer hover:bg-muted/50 transition-colors mb-2">
+              <Card className="cursor-pointer hover:bg-muted/50 transition-colors p-3 border-l-4 border-l-primary mb-2">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-base font-medium">{g.name}</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
@@ -138,8 +138,10 @@ export function GroupList({ groups }: { groups: Group[] }) {
                 <CardContent>
                   <div className="flex justify-between items-end">
                     <div className="text-sm text-muted-foreground">
-                      <p>Anggota: {g.memberCount}</p>
-                      <p>Role: {g.role}</p>
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <p>{g.memberCount}</p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

@@ -34,13 +34,13 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { displayName, avatarUrl } = body;
+    const { displayName } = body;
 
     const profile = await prisma.profile.update({
       where: { id: user.id },
       data: {
         display_name: displayName,
-        avatar_url: avatarUrl,
+        avatar_url: user.user_metadata.avatar_url, // Automatically sync from Google
       },
     });
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -14,12 +14,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export function TopNav() {
   const { user, signOut, checkUser } = useAuthStore();
   const router = useRouter();
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -29,6 +31,25 @@ export function TopNav() {
     await signOut();
     router.push('/login');
     router.refresh();
+  };
+
+  const handleSyncAvatar = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch('/api/profile/sync-avatar', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to sync avatar');
+      }
+      toast.success('Avatar berhasil disinkronkan!');
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error('Gagal menyinkronkan avatar');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return (
@@ -71,6 +92,10 @@ export function TopNav() {
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSyncAvatar} disabled={isSyncing}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'Syncing...' : 'Sync Avatar'}</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -87,3 +112,4 @@ export function TopNav() {
     </header>
   );
 }
+

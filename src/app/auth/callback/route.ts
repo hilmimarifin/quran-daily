@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -35,6 +36,22 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Sync avatar from Google on login
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await prisma.profile.upsert({
+          where: { id: user.id },
+          update: {
+            avatar_url: user.user_metadata.avatar_url,
+          },
+          create: {
+            id: user.id,
+            display_name: user.user_metadata.full_name || user.email?.split('@')[0],
+            avatar_url: user.user_metadata.avatar_url,
+          },
+        });
+      }
+
       // Successful authentication - redirect to home or specified next page
       return NextResponse.redirect(`${origin}${next}`);
     }

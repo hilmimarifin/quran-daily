@@ -282,10 +282,10 @@ export function GroupDetailClient({ group, bookmarks }: { group: Group; bookmark
           >
             <TabsList className="h-8">
               <TabsTrigger value="weekly" className="text-xs px-2">
-                Minggu
+                Minggu ini
               </TabsTrigger>
               <TabsTrigger value="monthly" className="text-xs px-2">
-                Bulan
+                Bulan ini
               </TabsTrigger>
               <TabsTrigger value="all" className="text-xs px-2">
                 Semua

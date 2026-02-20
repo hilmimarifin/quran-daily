@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useQuran, useChapters, Verse } from '@/hooks/useQuran';
+import { useQuran, useChapters, useJuz, getVersePositionInJuz, Verse } from '@/hooks/useQuran';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Search, X, Languages } from 'lucide-react';
+import { Search, X, Languages, BookOpen } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import { BookmarkSheet } from '@/components/features/BookmarkSheet';
 import { getChapterName } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -88,6 +89,53 @@ export function ReaderClient() {
   const [translations, setTranslations] = useState<TranslationData>({});
   const [isLoadingTranslation, setIsLoadingTranslation] = useState(false);
 
+  // Track which verse is currently at the 25% screen position
+  const [currentVisibleVerseNum, setCurrentVisibleVerseNum] = useState<number>(1);
+  const verseRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  const setVerseRef = useCallback((verseNumber: number, el: HTMLDivElement | null) => {
+    if (el) {
+      verseRefs.current.set(verseNumber, el);
+    } else {
+      verseRefs.current.delete(verseNumber);
+    }
+  }, []);
+
+  const allVerses = useMemo(() => data?.verses ?? [], [data]);
+
+  // IntersectionObserver to detect which verse is at ~25% of viewport
+  useEffect(() => {
+    if (allVerses.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the topmost visible entry
+        let topEntry: IntersectionObserverEntry | null = null;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            if (!topEntry || entry.boundingClientRect.top < topEntry.boundingClientRect.top) {
+              topEntry = entry;
+            }
+          }
+        }
+        if (topEntry) {
+          const verseNum = parseInt((topEntry.target as HTMLElement).dataset.verseNum || '1');
+          setCurrentVisibleVerseNum(verseNum);
+        }
+      },
+      {
+        // rootMargin: top 25% of viewport is the trigger zone
+        rootMargin: '-20% 0px -75% 0px',
+        threshold: 0,
+      }
+    );
+
+    // Observe all verse elements
+    verseRefs.current.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [allVerses.length]);
+
   const handleSearchVerse = () => {
     const verseNum = parseInt(searchVerse);
     if (isNaN(verseNum)) return;
@@ -102,8 +150,6 @@ export function ReaderClient() {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
-
-  const allVerses = data?.verses ?? [];
 
   // Scroll to target verse when data loads
   useEffect(() => {
@@ -173,6 +219,40 @@ export function ReaderClient() {
 
   const handleToggleTranslation = () => {
     setShowTranslation((prev) => !prev);
+  };
+
+  // Determine the juz number of the currently visible verse
+  const currentJuzNumber = useMemo(() => {
+    if (allVerses.length === 0) return null;
+    const currentVerse = allVerses.find(
+      (v) => parseInt(v.verse_key.split(':')[1]) === currentVisibleVerseNum
+    );
+    return currentVerse?.juz_number ?? null;
+  }, [allVerses, currentVisibleVerseNum]);
+
+  // Fetch juz metadata (verse_mapping, verses_count)
+  const { data: juzData } = useJuz(currentJuzNumber);
+
+  // Calculate juz progress based on current visible verse and actual juz data
+  const juzProgress = useMemo(() => {
+    if (!juzData || !currentJuzNumber) return null;
+
+    const { position, total } = getVersePositionInJuz(
+      juzData,
+      chapterId,
+      currentVisibleVerseNum
+    );
+
+    const percentage = total > 0 ? Math.round((position / total) * 100) : 0;
+
+    return { juzNumber: currentJuzNumber, percentage };
+  }, [juzData, currentJuzNumber, chapterId, currentVisibleVerseNum]);
+
+  const getProgressColor = (pct: number) => {
+    if (pct < 25) return 'bg-gradient-to-r from-rose-500 to-orange-400';
+    if (pct < 50) return 'bg-gradient-to-r from-orange-400 to-amber-400';
+    if (pct < 75) return 'bg-gradient-to-r from-amber-400 to-emerald-400';
+    return 'bg-gradient-to-r from-emerald-400 to-teal-500';
   };
 
   const showLoading = isLoading || !chaptersData;
@@ -246,6 +326,28 @@ export function ReaderClient() {
             <Languages className="h-4 w-4" />
           </Button>
         </div>
+
+        {/* Floating Juz Progress Bar */}
+        {juzProgress && (
+          <div className="space-y-1.5 py-1">
+            <div className="flex items-center gap-1.5 text-xs">
+              <BookOpen className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">Juz {juzProgress.juzNumber}</span>
+              {/* <span className="text-muted-foreground">• Ayat {currentVisibleVerseNum}</span> */}
+              <span className="ml-auto font-semibold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                {juzProgress.percentage}%
+              </span>
+            </div>
+            <div className="relative">
+              <Progress
+                value={juzProgress.percentage}
+                className="h-2 bg-muted/50"
+                indicatorClassName={getProgressColor(juzProgress.percentage)}
+              />
+              <div className="absolute inset-0 bg-linear-to-r from-white/20 to-transparent rounded-full pointer-events-none" />
+            </div>
+          </div>
+        )}
       </header>
 
       {showLoading ? (
@@ -266,18 +368,31 @@ export function ReaderClient() {
               <Card
                 key={verse.id}
                 id={`verse-${verseNumber}`}
-                ref={isTargetVerse ? targetVerseRef : null}
+                data-verse-num={verseNumber}
+                ref={(el) => {
+                  if (isTargetVerse) {
+                    (targetVerseRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+                  }
+                  setVerseRef(verseNumber, el);
+                }}
                 className={`border-none shadow-sm cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.99] pb-0 ${
                   isTargetVerse ? 'bg-primary/5 ring-2 ring-primary/30' : 'bg-card/50'
                 }`}
                 onClick={() => handleVerseClick(verse)}
               >
                 <CardContent className="">
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                  {/* <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                     {verse.verse_number}
-                  </span>
-                  <p className="text-right text-3xl leading-[3]" dir="rtl" style={{ fontFamily: "var(--font-arabic), 'Noto Naskh Arabic', serif" }}>
-                    {verse.text_indopak}
+                  </span> */}
+                  <p
+                    className="text-right text-2xl leading-[1.75] relative"
+                    dir="rtl"
+                    style={{ fontFamily: "var(--font-arabic), 'Noto Naskh Arabic', serif" }}
+                  >
+                    {verse.text_indopak}{' '}
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full w-6 h-6 flex items-center justify-center absolute top-[-20px] left-[-20px]">
+                      {verse.verse_number}
+                    </span>
                   </p>
                   {showTranslation &&
                     (isLoadingTranslation ? (

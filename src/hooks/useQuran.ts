@@ -8,6 +8,7 @@ export interface Verse {
   text_imlaei?: string;
   text_indopak?: string;
   verse_number?: number;
+  juz_number?: number;
 }
 
 export interface QuranResponse {
@@ -109,3 +110,56 @@ export const useSurat = () => {
     staleTime: Infinity, // Chapters don't change, cache forever
   });
 };
+
+// Juz data types and hook
+export interface JuzData {
+  id: number;
+  juz_number: number;
+  verse_mapping: Record<string, string>; // e.g. { "1": "1-7", "2": "1-141" }
+  first_verse_id: number;
+  last_verse_id: number;
+  verses_count: number;
+}
+
+const fetchJuz = async (juzNumber: number) => {
+  const { data } = await axios.get<{ juz: JuzData }>(
+    `https://api.quran.com/api/v4/juzs/${juzNumber}`
+  );
+  return data.juz;
+};
+
+export const useJuz = (juzNumber: number | null) => {
+  return useQuery({
+    queryKey: ['juz', juzNumber],
+    queryFn: () => fetchJuz(juzNumber!),
+    enabled: juzNumber !== null && juzNumber > 0,
+    staleTime: Infinity, // Juz data doesn't change
+  });
+};
+
+// Helper: calculate verse position within a juz using verse_mapping
+export function getVersePositionInJuz(
+  juzData: JuzData,
+  chapterId: number,
+  verseNumber: number
+): { position: number; total: number } {
+  let position = 0;
+  const sortedChapterIds = Object.keys(juzData.verse_mapping)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  for (const chId of sortedChapterIds) {
+    const range = juzData.verse_mapping[String(chId)];
+    const [start, end] = range.split('-').map(Number);
+    const versesInRange = end - start + 1;
+
+    if (chId < chapterId) {
+      position += versesInRange;
+    } else if (chId === chapterId) {
+      position += Math.min(verseNumber, end) - start + 1;
+      break;
+    }
+  }
+
+  return { position, total: juzData.verses_count };
+}

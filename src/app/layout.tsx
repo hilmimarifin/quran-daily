@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Noto_Naskh_Arabic, Amiri, Scheherazade_New } from 'next/font/google';
 import './globals.css';
 import ReactQueryProvider from '@/lib/react-query';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -14,6 +14,24 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+const notoNaskhArabic = Noto_Naskh_Arabic({
+  variable: '--font-arabic',
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+});
+
+const amiriQuran = Amiri({
+  variable: '--font-arabic',
+  subsets: ['arabic'],
+  weight: ['400'],
+});
+
+const scheherazadeNew = Scheherazade_New({
+  variable: '--font-arabic',
+  subsets: ['arabic'],
+  weight: ['400'],
 });
 
 export const metadata: Metadata = {
@@ -34,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoNaskhArabic.variable} ${amiriQuran.variable} ${scheherazadeNew.variable} antialiased bg-background text-foreground`}
       >
         <ReactQueryProvider>
           <TopNav />
@@ -46,4 +64,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -6,6 +6,7 @@ export interface Verse {
   verse_key: string;
   text_uthmani?: string;
   text_imlaei?: string;
+  text_indopak?: string;
   verse_number?: number;
 }
 
@@ -66,7 +67,7 @@ const fetchAllVerses = async (chapterId: number, versesCount: number) => {
         audio: false,
         page: 1,
         per_page: versesCount, // Get all verses in one call
-        fields: 'text_imlaei',
+        fields: 'text_indopak',
         // fields: 'text_uthmani',
       },
     }

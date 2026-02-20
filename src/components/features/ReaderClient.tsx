@@ -276,8 +276,8 @@ export function ReaderClient() {
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                     {verse.verse_number}
                   </span>
-                  <p className="text-right text-2xl font-serif leading-loose" dir="rtl">
-                    {verse.text_imlaei}
+                  <p className="text-right text-3xl leading-[3]" dir="rtl" style={{ fontFamily: "var(--font-arabic), 'Noto Naskh Arabic', serif" }}>
+                    {verse.text_indopak}
                   </p>
                   {showTranslation &&
                     (isLoadingTranslation ? (

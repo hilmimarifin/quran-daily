@@ -16,6 +16,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateProfile } from '@/lib/api/profile';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { RefreshCw } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface Profile {
   id: string;
@@ -33,6 +35,8 @@ export function ProfileForm({
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { signOut } = useAuthStore();
 
   const handleSave = () => {
     startTransition(async () => {
@@ -46,12 +50,36 @@ export function ProfileForm({
       }
     });
   };
+  const handleSyncAvatar = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch('/api/profile/sync-avatar', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to sync avatar');
+      }
+      toast.success('Avatar berhasil disinkronkan!');
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error('Gagal menyinkronkan avatar');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
-        <CardDescription>Manage your public profile information.</CardDescription>
+        <CardDescription>Manajemen informasi profil publik Anda.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
@@ -61,13 +89,17 @@ export function ProfileForm({
               {displayName?.[0] || email?.[0] || 'U'}
             </AvatarFallback>
           </Avatar>
+          <button onClick={handleSyncAvatar} disabled={isSyncing}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync Avatar'}</span>
+          </button>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="name">Display Name</Label>
+          <Label htmlFor="name">Nama Lengkap</Label>
           <Input
             id="name"
-            placeholder="Your Name"
+            placeholder="Nama Lengkap"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
@@ -80,7 +112,10 @@ export function ProfileForm({
       </CardContent>
       <CardFooter>
         <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? 'Saving...' : 'Save Changes'}
+          {isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
+        </Button>
+        <Button onClick={handleSignOut} disabled={isPending}>
+          {isPending ? 'Keluar...' : 'Keluar'}
         </Button>
       </CardFooter>
     </Card>

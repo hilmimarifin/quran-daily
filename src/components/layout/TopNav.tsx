@@ -15,13 +15,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { User, LogOut, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 
 export function TopNav() {
   const { user, signOut, checkUser } = useAuthStore();
   const router = useRouter();
   const [isSyncing, setIsSyncing] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     checkUser();
@@ -51,7 +52,10 @@ export function TopNav() {
       setIsSyncing(false);
     }
   };
-
+ 
+  if (pathname === '/read') {
+    return null;
+  }
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 items-center justify-between px-4 max-w-md mx-auto">
@@ -68,7 +72,7 @@ export function TopNav() {
           HancaQu
         </Link>
 
-        {user ? (
+        {/* {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -107,7 +111,7 @@ export function TopNav() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
-        )}
+        )} */}
       </div>
     </header>
   );

@@ -93,6 +93,46 @@ export function ReaderClient() {
   const [currentVisibleVerseNum, setCurrentVisibleVerseNum] = useState<number>(1);
   const verseRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
+  // Track scroll direction for hiding/showing the search bar
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const lastScrollY = useRef(0);
+  const cooldownRef = useRef(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Skip scroll events during cooldown (prevents layout-shift feedback loop)
+      if (cooldownRef.current) {
+        lastScrollY.current = window.scrollY;
+        return;
+      }
+
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY.current;
+
+      // Require a meaningful scroll distance to avoid jitter
+      if (Math.abs(delta) > 10) {
+        const newIsScrollingDown = delta > 0 && currentScrollY > 50;
+
+        setIsScrollingDown((prev) => {
+          if (prev !== newIsScrollingDown) {
+            // Start cooldown to ignore scroll events caused by header height change
+            cooldownRef.current = true;
+            setTimeout(() => {
+              cooldownRef.current = false;
+              lastScrollY.current = window.scrollY;
+            }, 400);
+          }
+          return newIsScrollingDown;
+        });
+
+        lastScrollY.current = currentScrollY;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const setVerseRef = useCallback((verseNumber: number, el: HTMLDivElement | null) => {
     if (el) {
       verseRefs.current.set(verseNumber, el);
@@ -237,11 +277,7 @@ export function ReaderClient() {
   const juzProgress = useMemo(() => {
     if (!juzData || !currentJuzNumber) return null;
 
-    const { position, total } = getVersePositionInJuz(
-      juzData,
-      chapterId,
-      currentVisibleVerseNum
-    );
+    const { position, total } = getVersePositionInJuz(juzData, chapterId, currentVisibleVerseNum);
 
     const percentage = total > 0 ? Math.round((position / total) * 100) : 0;
 
@@ -276,55 +312,63 @@ export function ReaderClient() {
           </Button>
         </div>
       )}
-
-      <header className="flex flex-col gap-4 py-2 sticky top-0 z-30 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">
-              {currentChapter?.name_simple ?? `Surah ${chapterId}`}
-            </h1>
-            {currentChapter && (
-              <p className="text-sm text-muted-foreground">{currentChapter.name_arabic}</p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={() => handleChapterChange(Math.max(1, chapterId - 1))}
-              disabled={chapterId <= 1}
-            >
-              Prev
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleChapterChange(Math.min(114, chapterId + 1))}
-              disabled={chapterId >= 114}
-            >
-              Next
-            </Button>
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold">
+            {currentChapter?.name_simple ?? `Surah ${chapterId}`}
+          </h1>
+          {currentChapter && (
+            <p className="text-sm text-muted-foreground">{currentChapter.name_arabic}</p>
+          )}
         </div>
-
         <div className="flex gap-2">
-          <Input
-            type="number"
-            placeholder={`Masukkan nomor ayat...`}
-            value={searchVerse}
-            onChange={(e) => setSearchVerse(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchVerse()}
-            className="flex-1"
-          />
-          <Button size="icon" onClick={handleSearchVerse}>
-            <Search className="h-4 w-4" />
+          <Button
+            size="sm"
+            onClick={() => handleChapterChange(Math.max(1, chapterId - 1))}
+            disabled={chapterId <= 1}
+          >
+            Prev
           </Button>
           <Button
-            size="icon"
-            variant={showTranslation ? 'default' : 'outline'}
-            onClick={handleToggleTranslation}
-            title="Tampilkan terjemahan"
+            size="sm"
+            onClick={() => handleChapterChange(Math.min(114, chapterId + 1))}
+            disabled={chapterId >= 114}
           >
-            <Languages className="h-4 w-4" />
+            Next
           </Button>
+        </div>
+      </div>
+
+      <header className="flex flex-col py-2 sticky top-0 z-30 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <div
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            maxHeight: isScrollingDown ? '0px' : '60px',
+            opacity: isScrollingDown ? 0 : 1,
+            marginBottom: isScrollingDown ? '0px' : '16px',
+          }}
+        >
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              placeholder={`Masukkan nomor ayat...`}
+              value={searchVerse}
+              onChange={(e) => setSearchVerse(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearchVerse()}
+              className="flex-1"
+            />
+            <Button size="icon" onClick={handleSearchVerse}>
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant={showTranslation ? 'default' : 'outline'}
+              onClick={handleToggleTranslation}
+              title="Tampilkan terjemahan"
+            >
+              <Languages className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Floating Juz Progress Bar */}

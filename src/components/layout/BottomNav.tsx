@@ -6,10 +6,11 @@ import { BookOpen, Bookmark, User, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useEffect } from 'react';
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user } = useAuthStore();
+  const { user, checkUser } = useAuthStore();
 
   const navItems = [
     {
@@ -30,9 +31,12 @@ export function BottomNav() {
     {
       label: 'Profil',
       href: '/profile',
-      icon:  User,
+      icon: User,
     },
   ];
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-primary pb-1 pt-1">
@@ -54,7 +58,10 @@ export function BottomNav() {
                   <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
               ) : (
-                <item.icon strokeWidth={1.5} className={cn('h-6 w-6', isActive && 'fill-current')} />
+                <item.icon
+                  strokeWidth={1.5}
+                  className={cn('h-6 w-6', isActive && 'fill-current')}
+                />
               )}
               <span>{item.label}</span>
             </Link>

@@ -82,7 +82,7 @@ export function ProfileForm({
         <CardDescription>Manajemen informasi profil publik Anda.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex justify-between">
           <Avatar className="h-20 w-20">
             <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback className="text-lg">
@@ -90,8 +90,10 @@ export function ProfileForm({
             </AvatarFallback>
           </Avatar>
           <button onClick={handleSyncAvatar} disabled={isSyncing}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync Avatar'}</span>
+            <span className="flex flex-row items-center gap-2">
+              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span>{isSyncing ? 'Syncing...' : 'Sync Avatar'}</span>
+            </span>
           </button>
         </div>
 
@@ -110,11 +112,11 @@ export function ProfileForm({
           <Input value={email} disabled className="bg-muted" />
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-between">
         <Button onClick={handleSave} disabled={isPending}>
           {isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
         </Button>
-        <Button onClick={handleSignOut} disabled={isPending}>
+        <Button onClick={handleSignOut} disabled={isPending} variant="destructive">
           {isPending ? 'Keluar...' : 'Keluar'}
         </Button>
       </CardFooter>

@@ -1,58 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useAuthStore } from '@/store/useAuthStore';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { User, LogOut, RefreshCw } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
-import { toast } from 'sonner';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 
 export function TopNav() {
-  const { user, signOut, checkUser } = useAuthStore();
-  const router = useRouter();
-  const [isSyncing, setIsSyncing] = useState(false);
+  const { checkUser } = useAuthStore();
+  // const [isSyncing, setIsSyncing] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     checkUser();
   }, [checkUser]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/login');
-    router.refresh();
-  };
+  // const handleSignOut = async () => {
+  //   await signOut();
+  //   router.push('/login');
+  //   router.refresh();
+  // };
 
-  const handleSyncAvatar = async () => {
-    setIsSyncing(true);
-    try {
-      const response = await fetch('/api/profile/sync-avatar', {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to sync avatar');
-      }
-      toast.success('Avatar berhasil disinkronkan!');
-      router.refresh();
-    } catch (error) {
-      console.error(error);
-      toast.error('Gagal menyinkronkan avatar');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
- 
+  // const handleSyncAvatar = async () => {
+  //   setIsSyncing(true);
+  //   try {
+  //     const response = await fetch('/api/profile/sync-avatar', {
+  //       method: 'POST',
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error('Failed to sync avatar');
+  //     }
+  //     toast.success('Avatar berhasil disinkronkan!');
+  //     router.refresh();
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error('Gagal menyinkronkan avatar');
+  //   } finally {
+  //     setIsSyncing(false);
+  //   }
+  // };
+
   if (pathname === '/read') {
     return null;
   }
@@ -116,4 +103,3 @@ export function TopNav() {
     </header>
   );
 }
-
